@@ -194,11 +194,14 @@ export default function HomeScreen() {
             {/* MEBRO text */}
             <Text style={{
               position: 'absolute',
-              bottom: 55,
-              fontSize: 32,
+              bottom: 75,
+              fontSize: 36,
               fontWeight: '900',
-              letterSpacing: 1,
+              letterSpacing: 2,
               color: colors.textPrimary,
+              textShadowColor: '#d4a547',
+              textShadowOffset: { width: 0, height: 0 },
+              textShadowRadius: 12,
             }}>
               MEBRO
             </Text>
