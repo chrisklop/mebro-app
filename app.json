@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "mebro",
+    "slug": "mebro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "scheme": "mebro",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#C4B99A"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.mebro.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#C4B99A"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.mebro.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "output": "single",
+      "name": "mebro",
+      "shortName": "mebro",
+      "description": "Fact-check any claim and get a shareable link",
+      "backgroundColor": "#C4B99A",
+      "themeColor": "#171717",
+      "lang": "en",
+      "orientation": "portrait",
+      "display": "standalone",
+      "startUrl": "/"
+    }
+  }
+}

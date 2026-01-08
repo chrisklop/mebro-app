@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mebro Logo with Badges - Fire & Ethereal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #020408;
+      color: #fff;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      padding: 40px;
+      overflow-x: hidden;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 16px;
+      text-transform: uppercase;
+      letter-spacing: 0.3em;
+      color: #666;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 24px;
+      font-weight: 900;
+      color: #3b82f6;
+      margin: 60px 0 30px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 25px;
+      max-width: 2000px;
+      margin: 0 auto;
+    }
+    .card {
+      background: linear-gradient(135deg, #0a0f18 0%, #0d1520 100%);
+      border: 1px solid #1a2030;
+      border-radius: 24px;
+      padding: 40px 25px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 280px;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+    .card:hover {
+      border-color: #3b82f6;
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px rgba(59, 130, 246, 0.15);
+    }
+    .card-label {
+      position: absolute;
+      top: 15px;
+      left: 15px;
+      font-size: 10px;
+      color: #3b82f6;
+      font-weight: bold;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+    .logo-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+      position: relative;
+      width: 180px;
+      height: 180px;
+    }
+    .mebro-text {
+      font-size: 48px;
+      font-weight: 900;
+      line-height: 1;
+      position: relative;
+      z-index: 2;
+    }
+    .badge {
+      position: absolute;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 24px;
+      border: 2px solid;
+      box-shadow: 0 0 15px currentColor;
+      right: -15px;
+      bottom: -15px;
+      z-index: 3;
+    }
+    .ring {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* FIRE VARIANTS */
+    .fire-base .mebro-text {
+      background: linear-gradient(135deg, #f59e0b, #ef4444);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.5));
+    }
+    .fire-base .ring { border: 2px solid #f59e0b; }
+
+    /* Badge variants for Fire */
+    .fire-badge-verified .badge {
+      background: linear-gradient(135deg, #ef4444, #f59e0b);
+      color: #fff;
+      border-color: #fbbf24;
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+    .fire-badge-trust .badge {
+      background: radial-gradient(circle at 30% 30%, #fbbf24, #ef4444);
+      color: #fff;
+      border-color: #ef4444;
+      font-size: 20px;
+    }
+    .fire-badge-star .badge {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: #fff;
+      border-color: #fbbf24;
+      font-size: 32px;
+    }
+    .fire-badge-shield .badge {
+      background: linear-gradient(135deg, #dc2626, #ef4444);
+      color: #fff;
+      border-color: #fbbf24;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      animation: shieldGlow 2s ease-in-out infinite;
+    }
+    .fire-badge-glow .badge {
+      background: linear-gradient(135deg, transparent, rgba(245, 158, 11, 0.3));
+      border-color: #fbbf24;
+      color: #fbbf24;
+      box-shadow: 0 0 25px #f59e0b, inset 0 0 20px rgba(245, 158, 11, 0.2);
+      animation: intensGlow 1.5s ease-in-out infinite;
+    }
+    .fire-badge-flame .badge {
+      background: linear-gradient(180deg, #fbbf24, #f59e0b, #ef4444);
+      color: #000;
+      border-color: #fbbf24;
+      border-width: 3px;
+      animation: flameFlicker 0.3s ease-in-out infinite;
+    }
+    .fire-badge-ring .badge {
+      background: transparent;
+      border: 3px solid #f59e0b;
+      color: #fbbf24;
+      box-shadow: 0 0 30px #f59e0b, inset 0 0 15px rgba(245, 158, 11, 0.1);
+    }
+    .fire-badge-neon .badge {
+      background: linear-gradient(135deg, #ff6b35, #f7931e);
+      color: #000;
+      border-color: #ffd60a;
+      box-shadow: 0 0 30px #f59e0b, 0 0 60px rgba(245, 158, 11, 0.5);
+      animation: neonFlash 1s ease-in-out infinite;
+    }
+    .fire-badge-spark .badge {
+      background: radial-gradient(circle, #fbbf24 0%, #f59e0b 50%, #ef4444 100%);
+      color: #fff;
+      border-color: #fbbf24;
+      animation: sparkle 0.5s ease-in-out infinite;
+    }
+    .fire-badge-inferno .badge {
+      background: linear-gradient(45deg, #dc2626, #ef4444, #f97316);
+      color: #fff;
+      border-color: #fbbf24;
+      box-shadow: 0 0 20px #ef4444, 0 0 40px rgba(239, 68, 68, 0.6);
+      animation: infernoBurn 1.5s ease-in-out infinite;
+    }
+
+    /* ETHEREAL VARIANTS */
+    .ethereal-base .mebro-text {
+      color: #fff;
+      text-shadow: 0 0 30px rgba(59, 130, 246, 0.8);
+    }
+    .ethereal-base .ring {
+      border: 1px solid rgba(59, 130, 246, 0.8);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.5), inset 0 0 30px rgba(59, 130, 246, 0.2);
+    }
+
+    /* Badge variants for Ethereal */
+    .ethereal-badge-crystal .badge {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(139, 92, 246, 0.3));
+      color: #60a5fa;
+      border-color: #a5b4fc;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+      animation: crystalShine 2s ease-in-out infinite;
+    }
+    .ethereal-badge-aurora .badge {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2));
+      color: #c4b5fd;
+      border-color: rgba(168, 85, 247, 0.6);
+      box-shadow: 0 0 30px rgba(168, 85, 247, 0.4);
+      animation: auroraShift 3s ease-in-out infinite;
+    }
+    .ethereal-badge-stardust .badge {
+      background: radial-gradient(circle, rgba(168, 85, 247, 0.4), transparent);
+      color: #c4b5fd;
+      border-color: #a5b4fc;
+      font-size: 28px;
+      animation: stardustFloat 2s ease-in-out infinite;
+    }
+    .ethereal-badge-whisper .badge {
+      background: linear-gradient(135deg, transparent, rgba(59, 130, 246, 0.1));
+      color: #a5b4fc;
+      border-color: rgba(59, 130, 246, 0.5);
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.3);
+      animation: whisperFlow 3s ease-in-out infinite;
+    }
+    .ethereal-badge-halo .badge {
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.3), transparent 70%);
+      color: #e0e7ff;
+      border-color: #a5b4fc;
+      box-shadow: 0 0 40px rgba(139, 92, 246, 0.5), inset 0 0 20px rgba(168, 85, 247, 0.2);
+    }
+    .ethereal-badge-shimmer .badge {
+      background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.2), transparent);
+      color: #c4b5fd;
+      border-color: #a5b4fc;
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+      animation: shimmerWave 2s ease-in-out infinite;
+    }
+    .ethereal-badge-luminous .badge {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3), rgba(99, 102, 241, 0.3));
+      color: #dbeafe;
+      border-color: rgba(59, 130, 246, 0.8);
+      box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3);
+      animation: luminousPulse 2s ease-in-out infinite;
+    }
+    .ethereal-badge-mystic .badge {
+      background: conic-gradient(from 0deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2));
+      color: #a5b4fc;
+      border-color: #8b5cf6;
+      box-shadow: 0 0 25px rgba(168, 85, 247, 0.4);
+      animation: mysticSpin 4s linear infinite;
+    }
+    .ethereal-badge-veil .badge {
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(59, 130, 246, 0.15));
+      color: #c4b5fd;
+      border-color: rgba(168, 85, 247, 0.5);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+      animation: veilFlow 3s ease-in-out infinite;
+    }
+    .ethereal-badge-void .badge {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), transparent);
+      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.6);
+      box-shadow: 0 0 30px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(99, 102, 241, 0.1);
+      animation: voidPulse 2.5s ease-in-out infinite;
+    }
+
+    /* ANIMATIONS */
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 15px currentColor; }
+      50% { transform: scale(1.1); box-shadow: 0 0 30px currentColor; }
+    }
+    @keyframes shieldGlow {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.2); }
+    }
+    @keyframes intensGlow {
+      0%, 100% { box-shadow: 0 0 25px #f59e0b, inset 0 0 20px rgba(245, 158, 11, 0.2); }
+      50% { box-shadow: 0 0 40px #f59e0b, inset 0 0 30px rgba(245, 158, 11, 0.4); }
+    }
+    @keyframes flameFlicker {
+      0%, 100% { transform: scale(1) skewY(0deg); }
+      25% { transform: scale(1.05) skewY(1deg); }
+      50% { transform: scale(0.98) skewY(-1deg); }
+      75% { transform: scale(1.03) skewY(0.5deg); }
+    }
+    @keyframes neonFlash {
+      0%, 100% { box-shadow: 0 0 30px #f59e0b, 0 0 60px rgba(245, 158, 11, 0.5); }
+      50% { box-shadow: 0 0 50px #f59e0b, 0 0 80px rgba(245, 158, 11, 0.7); }
+    }
+    @keyframes sparkle {
+      0%, 100% { transform: scale(1) rotate(0deg); }
+      50% { transform: scale(1.15) rotate(10deg); }
+    }
+    @keyframes infernoBurn {
+      0%, 100% { filter: brightness(1); }
+      50% { filter: brightness(1.3); }
+    }
+    @keyframes crystalShine {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.8; }
+    }
+    @keyframes auroraShift {
+      0% { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2)); }
+      50% { background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2)); }
+      100% { background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(168, 85, 247, 0.2)); }
+    }
+    @keyframes stardustFloat {
+      0%, 100% { transform: translateY(0); opacity: 1; }
+      50% { transform: translateY(-8px); opacity: 0.8; }
+    }
+    @keyframes whisperFlow {
+      0%, 100% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.3); }
+      50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.5); }
+    }
+    @keyframes shimmerWave {
+      0%, 100% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+    @keyframes luminousPulse {
+      0%, 100% {
+        box-shadow: 0 0 30px rgba(59, 130, 246, 0.6), 0 0 60px rgba(59, 130, 246, 0.3);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 50px rgba(59, 130, 246, 0.8), 0 0 80px rgba(59, 130, 246, 0.5);
+        transform: scale(1.05);
+      }
+    }
+    @keyframes mysticSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    @keyframes veilFlow {
+      0%, 100% { opacity: 0.8; }
+      50% { opacity: 0.6; }
+    }
+    @keyframes voidPulse {
+      0%, 100% {
+        box-shadow: 0 0 30px rgba(99, 102, 241, 0.4), inset 0 0 20px rgba(99, 102, 241, 0.1);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 50px rgba(99, 102, 241, 0.6), inset 0 0 30px rgba(99, 102, 241, 0.2);
+        transform: scale(1.08);
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Mebro Logo with Badges - Fire & Ethereal</h1>
+
+  <!-- FIRE SECTION -->
+  <div class="section-title">Energy 3 - Fire with Badges</div>
+  <div class="grid">
+    <div class="card fire-base fire-badge-verified">
+      <span class="card-label">Fire 1 - Verified</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">✓</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-trust">
+      <span class="card-label">Fire 2 - Trust 95</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">95</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-star">
+      <span class="card-label">Fire 3 - Star</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">⭐</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-shield">
+      <span class="card-label">Fire 4 - Shield</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">🛡</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-glow">
+      <span class="card-label">Fire 5 - Glow Ring</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">◆</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-flame">
+      <span class="card-label">Fire 6 - Flame</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">🔥</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-ring">
+      <span class="card-label">Fire 7 - Ring Border</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">+</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-neon">
+      <span class="card-label">Fire 8 - Neon</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">!</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-spark">
+      <span class="card-label">Fire 9 - Spark</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">✨</span>
+      </div>
+    </div>
+
+    <div class="card fire-base fire-badge-inferno">
+      <span class="card-label">Fire 10 - Inferno</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">🌋</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ETHEREAL SECTION -->
+  <div class="section-title">Energy 5 - Ethereal with Badges</div>
+  <div class="grid">
+    <div class="card ethereal-base ethereal-badge-crystal">
+      <span class="card-label">Ethereal 1 - Crystal</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">◇</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-aurora">
+      <span class="card-label">Ethereal 2 - Aurora</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">✦</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-stardust">
+      <span class="card-label">Ethereal 3 - Stardust</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">✧</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-whisper">
+      <span class="card-label">Ethereal 4 - Whisper</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">◎</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-halo">
+      <span class="card-label">Ethereal 5 - Halo</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">☆</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-shimmer">
+      <span class="card-label">Ethereal 6 - Shimmer</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">✨</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-luminous">
+      <span class="card-label">Ethereal 7 - Luminous</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">◆</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-mystic">
+      <span class="card-label">Ethereal 8 - Mystic</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">◈</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-veil">
+      <span class="card-label">Ethereal 9 - Veil</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">⊙</span>
+      </div>
+    </div>
+
+    <div class="card ethereal-base ethereal-badge-void">
+      <span class="card-label">Ethereal 10 - Void</span>
+      <div class="logo-container">
+        <span class="mebro-text">MEBRO</span>
+        <div class="ring" style="width: 50px; height: 50px;"></div>
+        <span class="badge">◯</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Add pulsing energy rings on hover
+    document.querySelectorAll('.card').forEach(card => {
+      card.addEventListener('mouseenter', () => {
+        const ring = card.querySelector('.ring');
+        if (ring) {
+          gsap.set(ring, { opacity: 1, scale: 1 });
+          const createRing = (delay) => {
+            const newRing = ring.cloneNode(true);
+            ring.parentNode.appendChild(newRing);
+            gsap.to(newRing, {
+              width: 200,
+              height: 200,
+              opacity: 0,
+              duration: 1.5,
+              ease: 'power2.out',
+              onComplete: () => newRing.remove()
+            });
+          };
+          createRing(0);
+          createRing(0.3);
+          createRing(0.6);
+
+          card._ringInterval = setInterval(() => {
+            createRing(0);
+            createRing(0.3);
+            createRing(0.6);
+          }, 2000);
+        }
+      });
+
+      card.addEventListener('mouseleave', () => {
+        if (card._ringInterval) clearInterval(card._ringInterval);
+      });
+    });
+  </script>
+</body>
+</html>

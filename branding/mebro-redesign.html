@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mebro - Fact-Checking Reimagined</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #f59e0b;
+            --primary-light: #fbbf24;
+            --primary-dark: #d97706;
+            --charcoal-light: #2d2d2d;
+            --charcoal-dark: #1a1a1a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #94a3b8;
+            --surface: #0a0f18;
+            --border: #1a2030;
+            --verdict-true: #22c55e;
+            --verdict-false: #ef4444;
+            --verdict-nuanced: #f59e0b;
+            --verdict-context: #06b6d4;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, var(--charcoal-light) 0%, var(--charcoal-dark) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tagline-crossed {
+            font-family: 'Outfit', sans-serif;
+            font-size: 64px;
+            font-weight: 900;
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            position: relative;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+        }
+
+        .tagline-crossed::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--text-secondary);
+            transform: translateY(-50%);
+        }
+
+        .logo-container-main {
+            width: 300px;
+            height: 340px;
+            position: relative;
+            margin: 60px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shield-icon-main {
+            position: absolute;
+            width: 200px;
+            height: 220px;
+            z-index: 1;
+        }
+
+        .shield-icon-main svg {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 30px rgba(245, 158, 11, 0.5));
+            transition: all 0.3s ease;
+        }
+
+        .logo-container-main:hover .shield-icon-main svg {
+            animation: shieldGlowMain 1.5s ease-in-out infinite;
+        }
+
+        @keyframes shieldGlowMain {
+            0%, 100% {
+                filter: drop-shadow(0 0 20px rgba(245, 158, 11, 0.6));
+            }
+            50% {
+                filter: drop-shadow(0 0 40px rgba(251, 191, 36, 0.9));
+            }
+        }
+
+        .trust-text-main {
+            position: absolute;
+            top: 35%;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4em;
+            color: var(--primary);
+            z-index: 2;
+        }
+
+        .mebro-text-main {
+            position: absolute;
+            bottom: 15%;
+            font-family: 'Outfit', sans-serif;
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--primary-light);
+            letter-spacing: -0.03em;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+
+        .hero-cta {
+            font-size: 20px;
+            color: var(--text-secondary);
+            margin-top: 60px;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 40px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 16px 48px;
+            border: 2px solid var(--primary);
+            background: transparent;
+            color: var(--primary);
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: var(--primary);
+            color: var(--charcoal-dark);
+        }
+
+        .btn-solid {
+            background: var(--primary);
+            color: var(--charcoal-dark);
+            border-color: var(--primary);
+        }
+
+        .btn-solid:hover {
+            background: var(--primary-light);
+            border-color: var(--primary-light);
+        }
+
+        /* Verdict System Section */
+        .verdict-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .section {
+            padding: 80px 40px;
+            border-top: 1px solid var(--border);
+        }
+
+        .section-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 60px;
+            color: var(--primary-light);
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .verdicts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 32px;
+            margin-bottom: 80px;
+        }
+
+        .verdict-card {
+            padding: 40px;
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(10, 15, 24, 0.5) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .verdict-card:hover {
+            transform: translateY(-5px);
+            border-color: currentColor;
+        }
+
+        .verdict-badge {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 48px;
+            font-weight: 900;
+            text-transform: uppercase;
+            border: 2px solid;
+            box-shadow: 0 0 30px;
+        }
+
+        .verdict-true {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--verdict-true);
+            border-color: var(--verdict-true);
+            box-shadow: 0 0 30px rgba(34, 197, 94, 0.3);
+        }
+
+        .verdict-false {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--verdict-false);
+            border-color: var(--verdict-false);
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.3);
+        }
+
+        .verdict-nuanced {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--verdict-nuanced);
+            border-color: var(--verdict-nuanced);
+            box-shadow: 0 0 30px rgba(245, 158, 11, 0.3);
+        }
+
+        .verdict-context {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--verdict-context);
+            border-color: var(--verdict-context);
+            box-shadow: 0 0 30px rgba(6, 182, 212, 0.3);
+        }
+
+        .verdict-label {
+            font-family: 'Outfit', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+        }
+
+        .verdict-description {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        /* Results Example Section */
+        .results-title {
+            font-size: 16px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 32px;
+        }
+
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 32px;
+        }
+
+        .result-card {
+            padding: 32px;
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(10, 15, 24, 0.5) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .result-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .result-badge-small {
+            width: 70px;
+            height: 70px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            font-size: 32px;
+            font-weight: 900;
+            border: 2px solid;
+            flex-shrink: 0;
+        }
+
+        .result-badge-small.true {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--verdict-true);
+            border-color: var(--verdict-true);
+        }
+
+        .result-badge-small.false {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--verdict-false);
+            border-color: var(--verdict-false);
+        }
+
+        .result-badge-small.nuanced {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--verdict-nuanced);
+            border-color: var(--verdict-nuanced);
+        }
+
+        .result-badge-small.context {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--verdict-context);
+            border-color: var(--verdict-context);
+        }
+
+        .result-info h3 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+
+        .result-sources {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .result-summary {
+            font-size: 14px;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin-bottom: 16px;
+        }
+
+        .result-footer {
+            display: flex;
+            gap: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Sources Section */
+        .sources-section {
+            padding: 40px;
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(10, 15, 24, 0.5) 100%);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            margin-bottom: 40px;
+        }
+
+        .sources-title {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 24px;
+            color: var(--primary-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .source-item {
+            padding: 16px;
+            background: rgba(245, 158, 11, 0.05);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .source-item:hover {
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .source-info h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-light);
+            margin-bottom: 4px;
+        }
+
+        .source-url {
+            font-size: 12px;
+            color: var(--text-secondary);
+            word-break: break-all;
+        }
+
+        /* Features Section */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 32px;
+            margin-top: 60px;
+        }
+
+        .feature {
+            padding: 32px;
+            background: linear-gradient(135deg, var(--surface) 0%, rgba(10, 15, 24, 0.5) 100%);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 16px;
+        }
+
+        .feature h4 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--primary-light);
+        }
+
+        .feature p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <div class="hero">
+        <h1 class="tagline-crossed">Trust me, Bro.</h1>
+
+        <div class="logo-container-main">
+            <div class="shield-icon-main">
+                <svg viewBox="0 0 100 120" fill="none">
+                    <path d="M50 5 L95 25 L95 65 C95 85 75 105 50 115 C25 105 5 85 5 65 L5 25 Z" stroke="#f59e0b" fill="none" stroke-width="2"/>
+                    <path d="M50 15 L85 32 L85 62 C85 78 68 95 50 103 C32 95 15 78 15 62 L15 32 Z" stroke="#f59e0b" fill="none" opacity="0.5" stroke-width="1.5"/>
+                </svg>
+            </div>
+            <div class="trust-text-main">trust</div>
+            <div class="mebro-text-main">MEBRO</div>
+        </div>
+
+        <p class="hero-cta">Fact-Checking Reimagined</p>
+        <button class="btn btn-solid">Start Verifying</button>
+    </div>
+
+    <!-- Results Section -->
+    <div class="section">
+        <div class="container">
+            <h3 class="results-title">Example Results - Sources at Top</h3>
+
+            <div class="sources-section">
+                <h3 class="sources-title">Sources</h3>
+                <div class="sources-grid">
+                    <div class="source-item">
+                        <div class="source-info">
+                            <h4>CNN</h4>
+                            <div class="source-url">https://www.cnn.com/article/...</div>
+                        </div>
+                    </div>
+
+                    <div class="source-item">
+                        <div class="source-info">
+                            <h4>Nature Journal</h4>
+                            <div class="source-url">https://www.nature.com/articles/...</div>
+                        </div>
+                    </div>
+
+                    <div class="source-item">
+                        <div class="source-info">
+                            <h4>Reuters</h4>
+                            <div class="source-url">https://reuters.com/article/...</div>
+                        </div>
+                    </div>
+
+                    <div class="source-item">
+                        <div class="source-info">
+                            <h4>Government Data</h4>
+                            <div class="source-url">https://data.gov/dataset/...</div>
+                        </div>
+                    </div>
+
+                    <div class="source-item">
+                        <div class="source-info">
+                            <h4>Scientific Report</h4>
+                            <div class="source-url">https://arxiv.org/pdf/...</div>
+                        </div>
+                    </div>
+
+                    <div class="source-item">
+                        <div class="source-info">
+                            <h4>Academic Study</h4>
+                            <div class="source-url">https://scholar.google.com/...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="results-title">Verdict & Summary</h3>
+
+            <div class="result-cards">
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-badge-small true">✓</div>
+                        <div class="result-info">
+                            <h3>TRUE</h3>
+                            <div class="result-sources">47 sources verified</div>
+                        </div>
+                    </div>
+                    <div class="result-summary">This claim is well-supported by recent scientific research and government data. All major assertions are accurate.</div>
+                    <div class="result-footer">
+                        <span>Last verified 2 hours ago</span>
+                        <span>·</span>
+                        <span>High confidence</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-badge-small false">✕</div>
+                        <div class="result-info">
+                            <h3>FALSE</h3>
+                            <div class="result-sources">12 contradicting sources</div>
+                        </div>
+                    </div>
+                    <div class="result-summary">This claim contradicts established scientific consensus. Multiple fact-checkers have rated this as false.</div>
+                    <div class="result-footer">
+                        <span>Last verified 1 hour ago</span>
+                        <span>·</span>
+                        <span>High confidence</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-badge-small nuanced">◇</div>
+                        <div class="result-info">
+                            <h3>NUANCED</h3>
+                            <div class="result-sources">23 sources analyzed</div>
+                        </div>
+                    </div>
+                    <div class="result-summary">This contains truth but significant context is missing. The claim is technically accurate but misleading without additional information.</div>
+                    <div class="result-footer">
+                        <span>Last verified 3 hours ago</span>
+                        <span>·</span>
+                        <span>Medium confidence</span>
+                    </div>
+                </div>
+
+                <div class="result-card">
+                    <div class="result-header">
+                        <div class="result-badge-small context">?</div>
+                        <div class="result-info">
+                            <h3>NEEDS CONTEXT</h3>
+                            <div class="result-sources">31 sources analyzed</div>
+                        </div>
+                    </div>
+                    <div class="result-summary">Technically accurate but depends heavily on context. See sources below for the full picture and relevant details.</div>
+                    <div class="result-footer">
+                        <span>Last verified 30 min ago</span>
+                        <span>·</span>
+                        <span>Medium confidence</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="section">
+        <div class="container">
+            <h2 class="section-title">How It Works</h2>
+
+            <div class="features-grid">
+                <div class="feature">
+                    <div class="feature-icon">📊</div>
+                    <h4>Transparent</h4>
+                    <p>See all sources, reasoning, and evidence behind every verdict. No black boxes. Full transparency in every result.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <h4>Instant Results</h4>
+                    <p>Get verdicts in seconds, not hours. Real-time fact-checking for when you need answers fast.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🎯</div>
+                    <h4>Nuanced Verdicts</h4>
+                    <p>We don't just say true or false. We provide context, nuance, and the full story behind complex claims.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔗</div>
+                    <h4>Shareable</h4>
+                    <p>Share verdicts and results with one click. Spread verified information across your networks.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script>
+        // Energy ring animations on hover for main logo
+        const logoContainer = document.querySelector('.logo-container-main');
+        if (logoContainer) {
+            const shieldIcon = logoContainer.querySelector('.shield-icon-main');
+
+            logoContainer.addEventListener('mouseenter', () => {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => createRing(shieldIcon), i * 300);
+                }
+            });
+        }
+
+        function createRing(container) {
+            const ring = document.createElement('div');
+            ring.style.cssText = `
+                position: absolute;
+                width: 50px;
+                height: 50px;
+                border: 2px solid #fbbf24;
+                border-radius: 50%;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                box-shadow: 0 0 20px #fbbf2480;
+                pointer-events: none;
+            `;
+            container.appendChild(ring);
+
+            gsap.to(ring, {
+                width: 300,
+                height: 300,
+                opacity: 0,
+                duration: 1.5,
+                ease: 'power2.out',
+                onComplete: () => ring.remove()
+            });
+        }
+
+    </script>
+</body>
+</html>

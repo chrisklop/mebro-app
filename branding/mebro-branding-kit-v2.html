@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mebro Branding Kit - Khaki/Black Theme</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --background: #C4B99A;
+            --background-alt: #d4c8a8;
+            --surface: #e8e0cc;
+            --surface-dark: #1a1a1a;
+            --primary: #171717;
+            --text-primary: #171717;
+            --text-secondary: #3d3d3d;
+            --text-muted: #6b6b6b;
+            --text-on-dark: #ffffff;
+            --text-on-dark-muted: #a3a3a3;
+            --border: #a89f7d;
+            --verdict-true: #16a34a;
+            --verdict-false: #dc2626;
+            --verdict-nuanced: #ca8a04;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--background); color: var(--text-primary); line-height: 1.6; }
+        .section { padding: 80px 40px; border-bottom: 1px solid var(--border); }
+        .section-title { font-family: 'Outfit', sans-serif; font-size: 48px; font-weight: 900; margin-bottom: 40px; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .hero { padding: 120px 40px; text-align: center; background: var(--surface); }
+        .logo-container { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 40px; }
+        .logo-mark { width: 80px; height: 80px; background: var(--primary); border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+        .logo-mark span { font-family: 'Outfit', sans-serif; font-size: 48px; font-weight: 900; color: var(--text-on-dark); }
+        .logo-wordmark { font-family: 'Outfit', sans-serif; font-size: 72px; font-weight: 700; color: var(--text-primary); }
+        .subtitle { font-size: 18px; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; }
+        .palette-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 24px; margin-bottom: 40px; }
+        .color-swatch { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .color-display { width: 100%; height: 120px; }
+        .color-info { padding: 16px; background: var(--surface); }
+        .color-name { font-weight: 600; margin-bottom: 4px; }
+        .color-hex { font-family: monospace; font-size: 12px; color: var(--text-muted); }
+        .verdict-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; }
+        .verdict-swatch { padding: 20px; border-radius: 12px; text-align: center; }
+        .verdict-label { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 18px; }
+        .components-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 32px; }
+        .component-card { padding: 40px; background: var(--surface); border: 1px solid var(--border); border-radius: 16px; }
+        .component-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.2em; margin-bottom: 24px; }
+        .btn { display: inline-block; padding: 14px 32px; background: var(--primary); color: var(--text-on-dark); font-family: 'Outfit', sans-serif; font-weight: 600; border-radius: 12px; font-size: 16px; border: none; margin-right: 12px; margin-bottom: 12px; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--text-primary); }
+        .badge { display: inline-block; padding: 6px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; font-size: 13px; margin-right: 8px; margin-bottom: 8px; }
+        .tone-selector { display: flex; background: var(--background-alt); border-radius: 12px; padding: 4px; }
+        .tone-btn { flex: 1; padding: 12px; background: transparent; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-muted); }
+        .tone-btn.active { background: var(--surface); color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .dark-panel { background: var(--surface-dark); border-radius: 24px; padding: 48px; margin-top: 40px; }
+        .dark-panel .overline { font-size: 12px; color: var(--text-on-dark-muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
+        .dark-panel h3 { font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 700; color: var(--text-on-dark); text-align: center; margin-bottom: 32px; }
+        .sample-result { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; overflow: hidden; }
+        .sample-claim { padding: 24px; border-bottom: 1px solid rgba(255,255,255,0.1); }
+        .sample-claim .label { font-size: 11px; color: var(--text-on-dark-muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 8px; }
+        .sample-claim .text { font-size: 18px; color: var(--text-on-dark); font-style: italic; }
+        .sample-verdict { padding: 24px; display: flex; align-items: center; gap: 16px; }
+        .verdict-dot { width: 12px; height: 12px; border-radius: 6px; }
+        .verdict-text { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 800; }
+        .footer { text-align: center; padding: 60px 40px; }
+        .footer p { color: var(--text-muted); font-style: italic; }
+        .h3 { font-family: 'Outfit', sans-serif; font-size: 24px; font-weight: 700; margin-bottom: 16px; }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <div class="logo-container">
+            <div class="logo-mark"><span>M</span></div>
+            <div class="logo-wordmark">mebro</div>
+        </div>
+        <p class="subtitle">AI-Powered Fact Checking</p>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <h2 class="section-title">Color Palette</h2>
+            <h3 class="h3">Backgrounds</h3>
+            <div class="palette-grid">
+                <div class="color-swatch"><div class="color-display" style="background: #C4B99A;"></div><div class="color-info"><div class="color-name">Background</div><div class="color-hex">#C4B99A</div></div></div>
+                <div class="color-swatch"><div class="color-display" style="background: #d4c8a8;"></div><div class="color-info"><div class="color-name">Background Alt</div><div class="color-hex">#d4c8a8</div></div></div>
+                <div class="color-swatch"><div class="color-display" style="background: #e8e0cc;"></div><div class="color-info"><div class="color-name">Surface (Cards)</div><div class="color-hex">#e8e0cc</div></div></div>
+                <div class="color-swatch"><div class="color-display" style="background: #1a1a1a;"></div><div class="color-info"><div class="color-name">Surface Dark</div><div class="color-hex">#1a1a1a</div></div></div>
+            </div>
+            <h3 class="h3">Text & Borders</h3>
+            <div class="palette-grid">
+                <div class="color-swatch"><div class="color-display" style="background: #171717;"></div><div class="color-info"><div class="color-name">Primary / Text</div><div class="color-hex">#171717</div></div></div>
+                <div class="color-swatch"><div class="color-display" style="background: #3d3d3d;"></div><div class="color-info"><div class="color-name">Text Secondary</div><div class="color-hex">#3d3d3d</div></div></div>
+                <div class="color-swatch"><div class="color-display" style="background: #6b6b6b;"></div><div class="color-info"><div class="color-name">Text Muted</div><div class="color-hex">#6b6b6b</div></div></div>
+                <div class="color-swatch"><div class="color-display" style="background: #a89f7d;"></div><div class="color-info"><div class="color-name">Border</div><div class="color-hex">#a89f7d</div></div></div>
+            </div>
+            <h3 class="h3">Verdict Colors</h3>
+            <div class="verdict-grid">
+                <div class="verdict-swatch" style="background: #dcfce7;"><div class="verdict-label" style="color: #16a34a;">TRUE</div><div style="color: #16a34a; font-size: 12px;">#16a34a</div></div>
+                <div class="verdict-swatch" style="background: #fee2e2;"><div class="verdict-label" style="color: #dc2626;">FALSE</div><div style="color: #dc2626; font-size: 12px;">#dc2626</div></div>
+                <div class="verdict-swatch" style="background: #fef3c7;"><div class="verdict-label" style="color: #ca8a04;">NUANCED</div><div style="color: #ca8a04; font-size: 12px;">#ca8a04</div></div>
+                <div class="verdict-swatch" style="background: #cffafe;"><div class="verdict-label" style="color: #0891b2;">CONTEXT</div><div style="color: #0891b2; font-size: 12px;">#0891b2</div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <div class="container">
+            <h2 class="section-title">Components</h2>
+            <div class="components-grid">
+                <div class="component-card">
+                    <div class="component-label">Buttons</div>
+                    <button class="btn">Fact Check This</button>
+                    <button class="btn btn-outline">Copy Link</button>
+                </div>
+                <div class="component-card">
+                    <div class="component-label">Badges</div>
+                    <span class="badge">AI-Powered</span>
+                    <span class="badge">NASA</span>
+                    <span class="badge">Snopes</span>
+                </div>
+                <div class="component-card">
+                    <div class="component-label">Tone Selector</div>
+                    <div class="tone-selector">
+                        <button class="tone-btn">Academic</button>
+                        <button class="tone-btn active">Snarky</button>
+                        <button class="tone-btn">Brutal</button>
+                    </div>
+                </div>
+                <div class="component-card">
+                    <div class="component-label">Typography</div>
+                    <div style="font-family: Outfit; font-size: 32px; font-weight: 900; margin-bottom: 8px;">Outfit 900</div>
+                    <div style="font-family: Inter; font-size: 16px;">Inter for body text</div>
+                </div>
+            </div>
+            <div class="dark-panel">
+                <div class="overline">How It Works</div>
+                <h3>Get verdicts with receipts</h3>
+                <div class="sample-result">
+                    <div class="sample-claim">
+                        <div class="label">Sample Claim</div>
+                        <div class="text">"The Great Wall of China is visible from space"</div>
+                    </div>
+                    <div class="sample-verdict">
+                        <div class="verdict-dot" style="background: #dc2626;"></div>
+                        <div class="verdict-text" style="color: #dc2626;">False</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>"Because 'trust me bro' isn't a source."</p>
+        <br>
+        <p style="font-style: normal; font-size: 12px; text-transform: uppercase; letter-spacing: 0.1em;">Mebro Branding Kit v2.0 - Khaki/Black Theme</p>
+    </div>
+</body>
+</html>
