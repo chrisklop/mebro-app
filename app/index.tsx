@@ -194,8 +194,8 @@ export default function HomeScreen() {
             {/* MEBRO text */}
             <Text style={{
               position: 'absolute',
-              bottom: 35,
-              fontSize: 28,
+              bottom: 55,
+              fontSize: 32,
               fontWeight: '900',
               letterSpacing: 1,
               color: colors.textPrimary,
