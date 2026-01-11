@@ -1,5 +1,18 @@
 # Mebro - Fact-Checking App
 
+## IMPORTANT: Dual App Sync
+
+This mobile app has a sibling web app. **When making UI changes, update BOTH projects:**
+
+| App | Path | Stack |
+|-----|------|-------|
+| **This (Mobile)** | `/Users/klop/mebro-app` | Expo, React Native |
+| **Web** | `/Users/klop/lmdyrfy` | Next.js, Tailwind |
+
+See `/Users/klop/lmdyrfy/DUAL_APP_SYNC.md` for component mapping and translation guide.
+
+---
+
 ## Overview
 Mebro is a fact-checking app that lets users paste claims, get AI-powered verdicts with sources, and share results via unique links. Built with Expo/React Native for cross-platform (web, iOS, Android).
 
