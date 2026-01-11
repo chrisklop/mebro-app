@@ -1,22 +1,63 @@
 import { API_BASE } from './constants';
+import { supabase } from './supabase';
 import type { Tone, ClaimResponse } from './types';
+import type { UsageInfo } from './auth';
 
-export async function createClaim(query: string, tone: Tone): Promise<ClaimResponse> {
+interface ApiResponse extends ClaimResponse {
+  rateLimit?: UsageInfo;
+}
+
+async function getAuthHeaders(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+
+  if (session?.access_token) {
+    headers['Authorization'] = `Bearer ${session.access_token}`;
+  }
+
+  return headers;
+}
+
+export async function createClaim(
+  query: string,
+  tone: Tone,
+  onUsageUpdate?: (usage: UsageInfo) => void
+): Promise<ClaimResponse> {
   try {
+    const headers = await getAuthHeaders();
     const response = await fetch(`${API_BASE}/claims`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers,
       body: JSON.stringify({ query, tone }),
     });
+
+    // Handle rate limit exceeded
+    if (response.status === 429) {
+      const error = await response.json().catch(() => ({}));
+      if (error.rateLimit && onUsageUpdate) {
+        onUsageUpdate(error.rateLimit);
+      }
+      return {
+        success: false,
+        error: 'Daily limit reached. Upgrade for more checks!'
+      };
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Failed to create claim' }));
       return { success: false, error: error.error || 'Failed to create claim' };
     }
 
-    return response.json();
+    const data: ApiResponse = await response.json();
+
+    // Update usage info if returned
+    if (data.rateLimit && onUsageUpdate) {
+      onUsageUpdate(data.rateLimit);
+    }
+
+    return data;
   } catch (error) {
     return {
       success: false,
@@ -27,7 +68,8 @@ export async function createClaim(query: string, tone: Tone): Promise<ClaimRespo
 
 export async function getClaim(slug: string): Promise<ClaimResponse> {
   try {
-    const response = await fetch(`${API_BASE}/claims/${slug}`);
+    const headers = await getAuthHeaders();
+    const response = await fetch(`${API_BASE}/claims/${slug}`, { headers });
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Not found' }));
