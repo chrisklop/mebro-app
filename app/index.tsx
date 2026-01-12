@@ -19,7 +19,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { updateUsage } = useAuth();
   const [query, setQuery] = useState('');
-  const [tone, setTone] = useState<Tone>('snarky');
+  const [tone, setTone] = useState<Tone>('cordial');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [progressStage, setProgressStage] = useState(0);
@@ -62,8 +62,8 @@ export default function HomeScreen() {
   };
 
   const tones: { key: Tone; label: string }[] = [
+    { key: 'cordial', label: 'Cordial' },
     { key: 'academic', label: 'Academic' },
-    { key: 'snarky', label: 'Snarky' },
     { key: 'brutal', label: 'Brutal' },
   ];
 

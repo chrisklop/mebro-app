@@ -1,5 +1,5 @@
 export type Verdict = 'TRUE' | 'FALSE' | 'MISLEADING' | 'UNVERIFIED';
-export type Tone = 'academic' | 'snarky' | 'brutal';
+export type Tone = 'cordial' | 'academic' | 'brutal';
 export type SourceType = 'fact-checker' | 'news' | 'academic' | 'primary' | 'ai-grounded';
 
 export interface Source {
