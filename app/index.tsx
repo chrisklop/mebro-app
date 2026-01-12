@@ -195,7 +195,7 @@ export default function HomeScreen() {
                     flex: 1,
                     color: colors.textPrimary,
                     fontSize: 15,
-                    minHeight: 60,
+                    minHeight: 40,
                     maxHeight: 100,
                     lineHeight: 22,
                   }}
