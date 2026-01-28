@@ -1,4 +1,5 @@
 import { View, Text, Pressable, Linking, ScrollView } from 'react-native';
+import { useState, useEffect } from 'react';
 import type { Source, SourceType } from '../lib/types';
 
 interface SourceListProps {
@@ -56,6 +57,27 @@ export function SourceList({
   expanded = false,
   highlightedIndex = null,
 }: SourceListProps) {
+  const [flashIndex, setFlashIndex] = useState<number | null>(null);
+
+  // Flash animation effect when highlightedIndex changes
+  useEffect(() => {
+    if (highlightedIndex !== null) {
+      setFlashIndex(highlightedIndex);
+      let flashCount = 0;
+      const flashInterval = setInterval(() => {
+        setFlashIndex(prev => prev === null ? highlightedIndex : null);
+        flashCount++;
+        if (flashCount >= 6) { // 3 full flash cycles (on/off)
+          clearInterval(flashInterval);
+          setFlashIndex(highlightedIndex); // End with highlighted state
+        }
+      }, 300);
+      return () => clearInterval(flashInterval);
+    } else {
+      setFlashIndex(null);
+    }
+  }, [highlightedIndex]);
+
   if (!sources || sources.length === 0) {
     return (
       <View style={{ gap: 16 }}>
@@ -92,7 +114,7 @@ export function SourceList({
             const stars = getStars(source.credibilityScore);
             const typeConfig = getSourceTypeConfig(source.type);
             const credibility = getCredibilityLabel(source.credibilityScore);
-            const isHighlighted = highlightedIndex === i;
+            const isFlashing = flashIndex === i;
 
             return (
               <Pressable
@@ -101,11 +123,11 @@ export function SourceList({
                 style={{
                   padding: 16,
                   borderRadius: 8,
-                  borderWidth: 1,
+                  borderWidth: 2,
                   flexDirection: 'column',
                   gap: 12,
-                  borderColor: isHighlighted ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-                  backgroundColor: isHighlighted ? 'rgba(59, 130, 246, 0.1)' : 'rgba(0,0,0,0.3)',
+                  borderColor: isFlashing ? '#3b82f6' : 'rgba(255,255,255,0.05)',
+                  backgroundColor: isFlashing ? 'rgba(59, 130, 246, 0.2)' : 'rgba(0,0,0,0.3)',
                 }}
               >
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
@@ -168,7 +190,7 @@ export function SourceList({
         {sources.map((source, i) => {
           const stars = getStars(source.credibilityScore);
           const typeConfig = getSourceTypeConfig(source.type);
-          const isHighlighted = highlightedIndex === i;
+          const isFlashing = flashIndex === i;
 
           return (
             <Pressable
@@ -177,9 +199,9 @@ export function SourceList({
               style={{
                 padding: 12,
                 borderRadius: 8,
-                borderWidth: 1,
-                borderColor: isHighlighted ? '#3b82f6' : 'rgba(255,255,255,0.05)',
-                backgroundColor: isHighlighted ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255,255,255,0.05)',
+                borderWidth: 2,
+                borderColor: isFlashing ? '#3b82f6' : 'rgba(255,255,255,0.05)',
+                backgroundColor: isFlashing ? 'rgba(59, 130, 246, 0.2)' : 'rgba(255,255,255,0.05)',
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>

@@ -1,8 +1,8 @@
 import { ScrollView, View, Text, Pressable, Linking, Platform, Share } from 'react-native';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import {
-  ExternalLink, Copy, Check, Send, MessageSquare, Mail, Twitter
+  ExternalLink, Copy, Check, Send, MessageSquare, Mail, Twitter, Eye
 } from 'lucide-react-native';
 import * as Clipboard from 'expo-clipboard';
 import { getClaim } from '../../lib/api';
@@ -24,6 +24,23 @@ export default function ResultScreen() {
   const [copied, setCopied] = useState(false);
   const [activeSourceTab, setActiveSourceTab] = useState(0);
   const isSharedLink = useRef<boolean | null>(null);
+  const [viewCount, setViewCount] = useState<number>(0);
+  const viewTracked = useRef(false);
+
+  // Track view for gamification
+  const trackView = useCallback(async () => {
+    if (viewTracked.current || !slug) return;
+    viewTracked.current = true;
+    try {
+      const response = await fetch(`${API_BASE}/claims/${slug}/view`, { method: 'POST' });
+      const data = await response.json();
+      if (data.success && data.viewCount !== undefined) {
+        setViewCount(data.viewCount);
+      }
+    } catch {
+      // Silent fail
+    }
+  }, [slug]);
 
   // Detect if this is a shared link
   useEffect(() => {
@@ -102,6 +119,15 @@ export default function ResultScreen() {
     const timeout = setTimeout(() => setStep('complete'), 1000);
     return () => clearTimeout(timeout);
   }, [step]);
+
+  // Track view for gamification (once claim is loaded)
+  useEffect(() => {
+    if (claim && !viewTracked.current) {
+      trackView();
+      // Set initial view count from claim if available
+      setViewCount((claim as any).view_count || 0);
+    }
+  }, [claim, trackView]);
 
   const shareUrl = `https://lmdyrfy.vercel.app/r/${slug}`;
   const verdictStyle = claim?.verdict ? getVerdictStyle(claim.verdict) : null;
@@ -250,8 +276,7 @@ export default function ResultScreen() {
 
   if (!verdictStyle) return null;
 
-  // Share count (placeholder - will be real in Phase 2)
-  const shareCount = (claim as any).share_count || 0;
+  // View count from gamification tracking
 
   // Complete state - show full result with viral share section
   return (
@@ -332,15 +357,17 @@ export default function ResultScreen() {
             </View>
 
             {/* Social Proof */}
-            {shareCount > 0 && (
-              <Text style={{
-                fontSize: 12,
-                color: colors.textOnDarkMuted,
-                textAlign: 'center',
-                marginTop: spacing.md,
-              }}>
-                {shareCount} {shareCount === 1 ? 'person' : 'people'} shared this fact-check
-              </Text>
+            {viewCount > 0 && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: spacing.md, gap: 6 }}>
+                <Eye color={colors.textOnDarkMuted} size={14} />
+                <Text style={{
+                  fontSize: 12,
+                  color: colors.textOnDarkMuted,
+                  textAlign: 'center',
+                }}>
+                  {viewCount} {viewCount === 1 ? 'view' : 'views'}
+                </Text>
+              </View>
             )}
           </View>
         </View>
@@ -363,6 +390,11 @@ export default function ResultScreen() {
               <Text style={{ fontSize: 12, fontWeight: '600', color: colors.textMuted, marginBottom: spacing.sm, letterSpacing: 0.5 }}>
                 SUMMARY
               </Text>
+              {claim.tldr && (
+                <Text style={{ fontSize: 17, fontWeight: '700', color: colors.textPrimary, marginBottom: spacing.sm, lineHeight: 24 }}>
+                  {claim.tldr}
+                </Text>
+              )}
               <Text style={{ fontSize: 15, color: colors.textPrimary, lineHeight: 24 }}>
                 {claim.summary}
               </Text>

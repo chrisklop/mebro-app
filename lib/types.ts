@@ -19,6 +19,7 @@ export interface Claim {
   tone: Tone;
   verdict?: Verdict;
   confidence?: number;
+  tldr?: string;
   summary?: string;
   sources: Source[];
   createdAt: string;

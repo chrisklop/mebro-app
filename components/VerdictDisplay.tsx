@@ -1,4 +1,4 @@
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, LayoutChangeEvent } from 'react-native';
 import { MotiView } from 'moti';
 import { useState, useRef } from 'react';
 import type { Verdict, Source } from '../lib/types';
@@ -7,6 +7,7 @@ import { SourceList } from './SourceList';
 
 interface VerdictDisplayProps {
   verdict: Verdict;
+  tldr?: string;
   summary: string;
   sources: Source[];
   onReset?: () => void;
@@ -45,25 +46,37 @@ const verdictConfig: Record<
 
 export function VerdictDisplay({
   verdict,
+  tldr,
   summary,
   sources,
   onReset,
   hideActions = false,
 }: VerdictDisplayProps) {
   const [highlightedSource, setHighlightedSource] = useState<number | null>(null);
-  const sourcesRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
+  const sourcesYPosition = useRef<number>(0);
 
   const normalizedVerdict = (verdict?.toUpperCase() as Verdict) || 'UNVERIFIED';
   const config = verdictConfig[normalizedVerdict] || verdictConfig.UNVERIFIED;
   const displayVerdict = verdictConfig[normalizedVerdict] ? normalizedVerdict : 'UNVERIFIED';
 
+  const handleSourcesLayout = (event: LayoutChangeEvent) => {
+    sourcesYPosition.current = event.nativeEvent.layout.y;
+  };
+
   const handleCitationClick = (index: number) => {
+    // Scroll to sources section
+    scrollViewRef.current?.scrollTo({
+      y: sourcesYPosition.current - 20, // Small offset for padding
+      animated: true,
+    });
+    // Set highlighted source (triggers flash animation in SourceList)
     setHighlightedSource(index);
     setTimeout(() => setHighlightedSource(null), 3000);
   };
 
   return (
-    <ScrollView style={{ gap: 40 }}>
+    <ScrollView ref={scrollViewRef} style={{ gap: 40 }}>
       {/* Verdict Badge */}
       <MotiView
         from={{ scale: 0 }}
@@ -91,13 +104,18 @@ export function VerdictDisplay({
           </Text>
         </View>
         <View style={{ backgroundColor: 'rgba(15, 23, 42, 0.3)', borderRadius: 8, padding: 24, borderLeftWidth: 4, borderLeftColor: 'rgba(59, 130, 246, 0.5)' }}>
+          {tldr && (
+            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#e2e8f0', marginBottom: 16 }}>
+              {tldr}
+            </Text>
+          )}
           <FormattedSummary summary={summary} onCitationClick={handleCitationClick} />
         </View>
       </MotiView>
 
       {/* Sources */}
       <MotiView
-        ref={sourcesRef}
+        onLayout={handleSourcesLayout}
         from={{ opacity: 0, translateY: 20 }}
         animate={{ opacity: 1, translateY: 0 }}
         transition={{ type: 'timing', duration: 500, delay: 400 }}
