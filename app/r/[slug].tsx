@@ -1,4 +1,4 @@
-import { ScrollView, View, Text, Pressable, Linking, Platform, Share } from 'react-native';
+import { ScrollView, View, Text, Pressable, Linking, Platform, Share, Animated } from 'react-native';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useLocalSearchParams, useRouter, useNavigation } from 'expo-router';
 import {
@@ -27,6 +27,7 @@ export default function ResultScreen() {
   const [viewCount, setViewCount] = useState<number>(0);
   const viewTracked = useRef(false);
   const [sharedBanner, setSharedBanner] = useState<string | null>(null);
+  const bannerGlow = useRef(new Animated.Value(0)).current;
 
   // Track view for gamification
   const trackView = useCallback(async () => {
@@ -132,6 +133,18 @@ export default function ResultScreen() {
       setViewCount((claim as any).view_count || 0);
     }
   }, [claim, trackView]);
+
+  // Animate banner glow when shown
+  useEffect(() => {
+    if (sharedBanner) {
+      Animated.sequence([
+        Animated.timing(bannerGlow, { toValue: 1, duration: 400, useNativeDriver: false }),
+        Animated.timing(bannerGlow, { toValue: 0, duration: 400, useNativeDriver: false }),
+        Animated.timing(bannerGlow, { toValue: 1, duration: 400, useNativeDriver: false }),
+        Animated.timing(bannerGlow, { toValue: 0, duration: 400, useNativeDriver: false }),
+      ]).start();
+    }
+  }, [sharedBanner, bannerGlow]);
 
   const shareUrl = `https://lmdyrfy.vercel.app/r/${slug}`;
   const verdictStyle = claim?.verdict ? getVerdictStyle(claim.verdict) : null;
@@ -287,10 +300,21 @@ export default function ResultScreen() {
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Shared Link Banner */}
       {sharedBanner && (
-        <View style={{
+        <Animated.View style={{
           backgroundColor: colors.primary,
           paddingVertical: spacing.sm,
           paddingHorizontal: spacing.md,
+          shadowColor: '#d4a547',
+          shadowOffset: { width: 0, height: 0 },
+          shadowOpacity: bannerGlow.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 0.8],
+          }),
+          shadowRadius: bannerGlow.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0, 20],
+          }),
+          elevation: 8,
         }}>
           <Text style={{
             fontSize: 13,
@@ -300,7 +324,7 @@ export default function ResultScreen() {
           }}>
             {sharedBanner}
           </Text>
-        </View>
+        </Animated.View>
       )}
       {/* Verdict Header */}
       <View style={{ backgroundColor: colors.surfaceDark, paddingVertical: spacing.xl, paddingHorizontal: spacing.lg }}>
