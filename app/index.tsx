@@ -1,19 +1,11 @@
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback } from 'react-native';
-import { useState, useEffect } from 'react';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { Search, ArrowRight, Zap, Shield, Share2, Link } from 'lucide-react-native';
 import { createClaim } from '../lib/api';
 import { useAuth } from '../lib/auth';
-import { colors, spacing, shadows, borderRadius } from '../lib/design';
+import { colors, spacing, shadows, borderRadius, getWaitingMessage, getRandomProgressQuote } from '../lib/design';
 import type { Tone } from '../lib/types';
-
-const PROGRESS_STAGES = [
-  { progress: 0.1, message: 'Analyzing claim...' },
-  { progress: 0.25, message: 'Searching sources...' },
-  { progress: 0.5, message: 'Verifying facts...' },
-  { progress: 0.75, message: 'Cross-referencing...' },
-  { progress: 0.9, message: 'Generating verdict...' },
-];
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -22,26 +14,39 @@ export default function HomeScreen() {
   const [tone, setTone] = useState<Tone>('cordial');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [progressStage, setProgressStage] = useState(0);
+  const [messageIndex, setMessageIndex] = useState(0);
+  const [currentQuote, setCurrentQuote] = useState('');
+  const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
+  // Rotate through waiting messages every 6 seconds, alternating with wisdom quotes
   useEffect(() => {
     if (!isLoading) {
-      setProgressStage(0);
+      setMessageIndex(0);
       return;
     }
-    const intervals = [800, 1500, 2000, 2500, 3000];
-    let currentStage = 0;
-    const advanceStage = () => {
-      if (currentStage < PROGRESS_STAGES.length - 1) {
-        currentStage++;
-        setProgressStage(currentStage);
-      }
-    };
-    const timers = intervals.map((delay, i) =>
-      setTimeout(advanceStage, intervals.slice(0, i + 1).reduce((a, b) => a + b, 0))
-    );
-    return () => timers.forEach(clearTimeout);
+    // Set initial quote
+    setCurrentQuote(getRandomProgressQuote());
+
+    const interval = setInterval(() => {
+      setMessageIndex(prev => prev + 1);
+      // Update wisdom quote every cycle
+      setCurrentQuote(getRandomProgressQuote());
+    }, 6000);
+    return () => clearInterval(interval);
   }, [isLoading]);
+
+  // Pulsing animation for the loading indicator
+  useEffect(() => {
+    if (!isLoading) return;
+    const pulse = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, { toValue: 1, duration: 1000, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 0.4, duration: 1000, useNativeDriver: true }),
+      ])
+    );
+    pulse.start();
+    return () => pulse.stop();
+  }, [isLoading, pulseAnim]);
 
   const handleSubmit = async () => {
     if (!query.trim() || isLoading) return;
@@ -221,26 +226,49 @@ export default function HomeScreen() {
               </View>
             </View>
 
-            {/* Progress Bar */}
+            {/* Waiting Messages */}
             {isLoading && (
               <View style={{ marginBottom: spacing.sm }}>
                 <View style={{
-                  height: 3,
-                  backgroundColor: colors.backgroundAlt,
-                  borderRadius: 2,
-                  overflow: 'hidden',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   marginBottom: spacing.xs,
                 }}>
-                  <View style={{
-                    height: '100%',
-                    width: `${PROGRESS_STAGES[progressStage].progress * 100}%`,
+                  <Animated.View style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
                     backgroundColor: colors.textPrimary,
-                    borderRadius: 2,
+                    marginRight: spacing.xs,
+                    opacity: pulseAnim,
+                  }} />
+                  <Animated.View style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.textPrimary,
+                    marginRight: spacing.xs,
+                    opacity: pulseAnim,
+                  }} />
+                  <Animated.View style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    backgroundColor: colors.textPrimary,
+                    opacity: pulseAnim,
                   }} />
                 </View>
-                <Text style={{ fontSize: 11, color: colors.textMuted, textAlign: 'center' }}>
-                  {PROGRESS_STAGES[progressStage].message}
+                <Text style={{ fontSize: 12, color: colors.textSecondary, textAlign: 'center', lineHeight: 18, paddingHorizontal: spacing.sm, marginBottom: spacing.sm }}>
+                  {getWaitingMessage(tone, messageIndex)}
                 </Text>
+                {currentQuote && (
+                  <View style={{ borderTopWidth: 1, borderTopColor: colors.borderLight, paddingTop: spacing.sm }}>
+                    <Text style={{ fontSize: 11, color: colors.textMuted, textAlign: 'center', fontStyle: 'italic', lineHeight: 16, paddingHorizontal: spacing.md }}>
+                      "{currentQuote}"
+                    </Text>
+                  </View>
+                )}
               </View>
             )}
 

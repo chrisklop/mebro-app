@@ -7,7 +7,7 @@ import {
 import * as Clipboard from 'expo-clipboard';
 import { getClaim } from '../../lib/api';
 import { API_BASE } from '../../lib/constants';
-import { colors, spacing, shadows, borderRadius, getVerdictStyle, getRandomSnarkyMessage } from '../../lib/design';
+import { colors, spacing, shadows, borderRadius, getVerdictStyle, getRandomSnarkyMessage, getSharedLinkBanner } from '../../lib/design';
 import type { Claim, Source } from '../../lib/types';
 
 type Step = 'loading' | 'typing' | 'snarky' | 'reveal' | 'complete';
@@ -26,6 +26,7 @@ export default function ResultScreen() {
   const isSharedLink = useRef<boolean | null>(null);
   const [viewCount, setViewCount] = useState<number>(0);
   const viewTracked = useRef(false);
+  const [sharedBanner, setSharedBanner] = useState<string | null>(null);
 
   // Track view for gamification
   const trackView = useCallback(async () => {
@@ -60,6 +61,9 @@ export default function ResultScreen() {
           setClaim(response.claim);
           if (response.claim.verdict) {
             if (isSharedLink.current) {
+              // Set tone-aware banner for shared links
+              const claimTone = response.claim.tone || 'cordial';
+              setSharedBanner(getSharedLinkBanner(claimTone));
               setStep('complete');
             } else {
               setStep('typing');
@@ -281,6 +285,23 @@ export default function ResultScreen() {
   // Complete state - show full result with viral share section
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }}>
+      {/* Shared Link Banner */}
+      {sharedBanner && (
+        <View style={{
+          backgroundColor: colors.primary,
+          paddingVertical: spacing.sm,
+          paddingHorizontal: spacing.md,
+        }}>
+          <Text style={{
+            fontSize: 13,
+            color: colors.textOnDark,
+            textAlign: 'center',
+            lineHeight: 18,
+          }}>
+            {sharedBanner}
+          </Text>
+        </View>
+      )}
       {/* Verdict Header */}
       <View style={{ backgroundColor: colors.surfaceDark, paddingVertical: spacing.xl, paddingHorizontal: spacing.lg }}>
         <View style={{ maxWidth: 600, alignSelf: 'center', width: '100%' }}>
