@@ -78,8 +78,7 @@ export default function HomeScreen() {
     { icon: Share2, label: 'Shareable' },
   ];
 
-  return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+  const content = (
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: colors.background }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -203,6 +202,7 @@ export default function HomeScreen() {
                     minHeight: 40,
                     maxHeight: 100,
                     lineHeight: 22,
+                    ...(Platform.OS === 'web' ? { outlineStyle: 'none' } : {}),
                   }}
                 />
               </View>
@@ -354,6 +354,16 @@ export default function HomeScreen() {
         </View>
         </View>
       </KeyboardAvoidingView>
+  );
+
+  // On web, don't wrap with TouchableWithoutFeedback (interferes with input focus)
+  if (Platform.OS === 'web') {
+    return content;
+  }
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      {content}
     </TouchableWithoutFeedback>
   );
 }
