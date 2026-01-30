@@ -1,11 +1,19 @@
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import { Search, ArrowRight, Zap, Shield, Share2, Link } from 'lucide-react-native';
+import { Search, ArrowRight, Zap, Shield, Share2, Link, CheckCircle, XCircle, AlertTriangle, HelpCircle } from 'lucide-react-native';
 import { createClaim } from '../lib/api';
+import { API_BASE } from '../lib/constants';
 import { useAuth } from '../lib/auth';
 import { colors, spacing, shadows, borderRadius, getWaitingMessage, getRandomProgressQuote } from '../lib/design';
 import type { Tone } from '../lib/types';
+
+interface RecentClaim {
+  slug: string;
+  query: string;
+  verdict: string;
+  checked_at: string;
+}
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -16,6 +24,7 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null);
   const [messageIndex, setMessageIndex] = useState(0);
   const [currentQuote, setCurrentQuote] = useState('');
+  const [recentClaims, setRecentClaims] = useState<RecentClaim[]>([]);
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
   // Rotate through waiting messages every 6 seconds, alternating with wisdom quotes
@@ -34,6 +43,22 @@ export default function HomeScreen() {
     }, 6000);
     return () => clearInterval(interval);
   }, [isLoading]);
+
+  // Fetch recent claims on mount
+  useEffect(() => {
+    const fetchRecent = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/claims?limit=3`);
+        const data = await res.json();
+        if (data.success && data.claims) {
+          setRecentClaims(data.claims);
+        }
+      } catch {
+        // Silent fail - don't block UX
+      }
+    };
+    fetchRecent();
+  }, []);
 
   // Pulsing animation for the loading indicator
   useEffect(() => {
@@ -77,6 +102,24 @@ export default function HomeScreen() {
     { icon: Shield, label: 'Sourced' },
     { icon: Share2, label: 'Shareable' },
   ];
+
+  const getVerdictIcon = (verdict: string) => {
+    switch (verdict?.toUpperCase()) {
+      case 'TRUE': return CheckCircle;
+      case 'FALSE': return XCircle;
+      case 'MISLEADING': return AlertTriangle;
+      default: return HelpCircle;
+    }
+  };
+
+  const getVerdictColor = (verdict: string) => {
+    switch (verdict?.toUpperCase()) {
+      case 'TRUE': return colors.verdictTrue;
+      case 'FALSE': return colors.verdictFalse;
+      case 'MISLEADING': return colors.verdictNuanced;
+      default: return colors.textMuted;
+    }
+  };
 
   const content = (
       <KeyboardAvoidingView
@@ -340,6 +383,65 @@ export default function HomeScreen() {
               </View>
             ))}
           </View>
+
+          {/* Recent Fact Checks */}
+          {recentClaims.length > 0 && (
+            <View style={{ marginTop: spacing.xl }}>
+              <Text style={{
+                fontSize: 11,
+                fontWeight: '600',
+                color: colors.textMuted,
+                textAlign: 'center',
+                letterSpacing: 1,
+                marginBottom: spacing.sm,
+              }}>
+                RECENT FACT CHECKS
+              </Text>
+              <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.sm }}>
+                {recentClaims.map((claim) => {
+                  const VerdictIcon = getVerdictIcon(claim.verdict);
+                  const verdictColor = getVerdictColor(claim.verdict);
+                  return (
+                    <Pressable
+                      key={claim.slug}
+                      onPress={() => router.push(`/r/${claim.slug}`)}
+                      style={{
+                        width: 100,
+                        backgroundColor: colors.surface,
+                        borderRadius: borderRadius.md,
+                        padding: spacing.sm,
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                        alignItems: 'center',
+                      }}
+                    >
+                      <VerdictIcon color={verdictColor} size={16} />
+                      <Text
+                        style={{
+                          fontSize: 10,
+                          color: colors.textPrimary,
+                          textAlign: 'center',
+                          marginTop: spacing.xs,
+                          lineHeight: 14,
+                        }}
+                        numberOfLines={2}
+                      >
+                        {claim.query.length > 30 ? claim.query.slice(0, 30) + '...' : claim.query}
+                      </Text>
+                      <Text style={{
+                        fontSize: 9,
+                        fontWeight: '600',
+                        color: verdictColor,
+                        marginTop: spacing.xs,
+                      }}>
+                        {claim.verdict?.toUpperCase()}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </View>
+          )}
 
           {/* Tagline */}
           <Text style={{
