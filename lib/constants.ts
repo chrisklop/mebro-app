@@ -1,1 +1,1 @@
-export const API_BASE = 'https://mebro.app/api';
+export const API_BASE = 'https://www.mebro.app/api';
