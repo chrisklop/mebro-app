@@ -18,6 +18,7 @@ interface AuthContextType {
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signUp: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
+  resetPassword: (email: string) => Promise<{ error: Error | null }>;
   updateUsage: (usage: Partial<UsageInfo>) => void;
 }
 
@@ -96,6 +97,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await supabase.auth.signOut();
   };
 
+  const resetPassword = async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'https://www.mebro.app/auth/callback?type=recovery',
+    });
+    return { error };
+  };
+
   const updateUsage = (newUsage: Partial<UsageInfo>) => {
     setUsage(prev => ({ ...prev, ...newUsage }));
   };
@@ -110,6 +118,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signIn,
         signUp,
         signOut,
+        resetPassword,
         updateUsage,
       }}
     >

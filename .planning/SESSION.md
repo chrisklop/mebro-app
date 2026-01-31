@@ -1,8 +1,8 @@
 # Mebro Session Context
 
 > **Last Updated:** 2026-01-31
-> **Status:** Roadmap complete, ready for Phase 1
-> **Goal:** Consistent cross-platform app → RevenueCat paywall → iOS/Android approval
+> **Status:** Reorganizing for fastest path to submission
+> **Goal:** Submit to app stores ASAP → Add monetization post-launch
 
 ---
 
@@ -21,97 +21,100 @@ Both share the same Supabase backend.
 
 ---
 
-## Roadmap to App Store (Prioritized)
+## Roadmap to App Store
 
-### Phase 1: Foundation (Must Do First)
-*Unblock everything else*
+### Strategy: Submit Free App First
+You can submit a FREE app now, then add IAP via update. This is faster and common practice.
 
-| Priority | Task | Value | Status |
-|----------|------|-------|--------|
-| P0 | Commit mobile app auth changes | Unblocks all mobile work | [ ] |
-| P0 | Apple Developer Account ($99/yr) | Required for iOS | [ ] |
-| P0 | Google Play Developer ($25 one-time) | Required for Android | [ ] |
+---
 
-### Phase 2: Feature Parity
-*Consistent experience across platforms*
+## PRE-LAUNCH (Required for Submission)
 
-| Priority | Task | Value | Status |
-|----------|------|-------|--------|
-| P1 | Add /contact page to mobile | Feature parity | [ ] |
-| P1 | Add /reset-password to mobile | Feature parity | [ ] |
-| P1 | Add /account page to web | Feature parity | [ ] |
-| P1 | Add /leaderboard to web | Feature parity | [ ] |
-| P2 | UI consistency audit (fonts, colors, spacing) | Polish | [ ] |
-| P2 | Test deep links (mebro://) on mobile | Required for auth | [ ] |
-
-**Current Feature Gap:**
-| Page | Web | Mobile |
+### 1. Blockers (Do First)
+| Task | Why | Status |
 |------|-----|--------|
-| Home | ✓ | ✓ |
-| Login | ✓ | ✓ |
-| Privacy | ✓ | ✓ |
-| Share /r/[slug] | ✓ | ✓ |
-| Contact | ✓ | ✗ |
-| Reset Password | ✓ | ✗ |
-| Account | ✗ | ✓ |
-| Leaderboard | ✗ | ✓ |
+| Commit mobile app auth changes | Unblocks all mobile work | [ ] |
+| Apple Developer Account ($99/yr) | Required for iOS | [ ] |
+| Google Play Developer ($25 one-time) | Required for Android | [ ] |
+| Terms of Service page | Required by stores | [ ] |
 
-### Phase 3: RevenueCat Integration
-*Monetization before submission*
+### 2. App Store Assets
+| Task | Platform | Status |
+|------|----------|--------|
+| Privacy Policy URL | Both | [✓] |
+| App icon (1024x1024) | Both | [ ] |
+| iOS screenshots (6.5" + 5.5") | iOS | [ ] |
+| Android screenshots | Android | [ ] |
+| Feature graphic (1024x500) | Android | [ ] |
 
-| Priority | Task | Value | Status |
-|----------|------|-------|--------|
-| P1 | Create RevenueCat account | Free | [ ] |
-| P1 | Set up iOS StoreKit in App Store Connect | Required for iOS IAP | [ ] |
-| P1 | Set up Google Play Billing | Required for Android IAP | [ ] |
-| P1 | Install `react-native-purchases` | SDK integration | [ ] |
-| P1 | Create subscription products (monthly/yearly) | Revenue | [ ] |
-| P1 | Build paywall UI component | User-facing | [ ] |
-| P1 | Implement entitlement checks | Gate premium features | [ ] |
-| P2 | Web billing via RevenueCat (optional) | Cross-platform subs | [ ] |
-| P2 | Restore purchases flow | Required by stores | [ ] |
+### 3. Build & Test
+| Task | Status |
+|------|--------|
+| Configure eas.json for production | [ ] |
+| iOS production build (EAS) | [ ] |
+| Android AAB build (EAS) | [ ] |
+| TestFlight internal testing | [ ] |
+| Google Play internal testing | [ ] |
 
-**Pricing Strategy (Decide):**
-- [ ] Free tier: 5 checks/day (current)
-- [ ] Pro tier: Unlimited checks, no ads, priority support
-- [ ] Suggested: $4.99/mo or $29.99/yr
+### 4. Submit
+| Task | Status |
+|------|--------|
+| Complete App Store Connect listing | [ ] |
+| Complete Google Play Console listing | [ ] |
+| Age rating questionnaire | [ ] |
+| **Submit to iOS App Review** | [ ] |
+| **Submit to Google Play Review** | [ ] |
 
-### Phase 4: App Store Assets
-*Required for submission*
+---
 
-| Priority | Task | Value | Status |
-|----------|------|-------|--------|
-| P1 | Privacy Policy URL (have /privacy) | Required | [✓] |
-| P1 | Terms of Service page | Required | [ ] |
-| P1 | App icon (1024x1024) | Required | [ ] |
-| P1 | iOS screenshots (6.5" + 5.5") | Required | [ ] |
-| P1 | Android screenshots | Required | [ ] |
-| P2 | App preview video (30s) | Optional, high impact | [ ] |
-| P2 | Feature graphic (1024x500) for Android | Required | [ ] |
+## POST-LAUNCH (After Approval)
 
-### Phase 5: Build & Test
-*EAS builds and testing*
+### RevenueCat & Monetization
+*Add via app update after initial approval*
 
-| Priority | Task | Value | Status |
-|----------|------|-------|--------|
-| P1 | Configure eas.json for production builds | Required | [ ] |
-| P1 | Create iOS production build (EAS) | Required | [ ] |
-| P1 | Create Android AAB build (EAS) | Required | [ ] |
-| P1 | TestFlight internal testing | Catch bugs | [ ] |
-| P1 | Google Play internal testing track | Catch bugs | [ ] |
-| P2 | External beta testers | User feedback | [ ] |
+| Task | Status |
+|------|--------|
+| Create RevenueCat account | [ ] |
+| Set up iOS StoreKit | [ ] |
+| Set up Google Play Billing | [ ] |
+| Install `react-native-purchases` | [ ] |
+| Create subscription products | [ ] |
+| Build paywall UI | [ ] |
+| Implement entitlement checks | [ ] |
+| Restore purchases flow | [ ] |
+| Web billing (optional) | [ ] |
 
-### Phase 6: Submission
-*Final steps*
+**Pricing Strategy:**
+- Free tier: 5 checks/day (current)
+- Pro tier: Unlimited checks, $4.99/mo or $29.99/yr
 
-| Priority | Task | Value | Status |
-|----------|------|-------|--------|
-| P1 | Complete App Store Connect listing | Required | [ ] |
-| P1 | Complete Google Play Console listing | Required | [ ] |
-| P1 | Age rating questionnaire | Required | [ ] |
-| P1 | Submit to iOS App Review | Goal | [ ] |
-| P1 | Submit to Google Play Review | Goal | [ ] |
-| P2 | Respond to review feedback | If rejected | [ ] |
+### Feature Parity (Nice to Have)
+*Can add incrementally*
+
+| Task | Platform | Status |
+|------|----------|--------|
+| Add /contact to mobile | Mobile | [ ] |
+| Add /reset-password to mobile | Mobile | [ ] |
+| Add /account to web | Web | [ ] |
+| Add /leaderboard to web | Web | [ ] |
+| UI consistency audit | Both | [ ] |
+| Deep links testing | Mobile | [ ] |
+
+### SEO & Growth
+| Task | Status |
+|------|--------|
+| Dynamic sitemap for /r/[slug] | [x] |
+| Dynamic meta tags per claim | [x] |
+| Submit to Google Search Console | [ ] |
+| App preview video (30s) | [ ] |
+
+### Zoho Integration
+| Task | Status |
+|------|--------|
+| Zoho Analytics MCP setup | [ ] |
+| Usage dashboard (signups, fact-checks, verdicts) | [ ] |
+| Zoho Campaigns newsletter | [ ] |
+| Zoho Apptics for mobile analytics | [ ] |
 
 ---
 

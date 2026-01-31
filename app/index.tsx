@@ -1,7 +1,7 @@
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import { Search, ArrowRight, Zap, Shield, Share2, Link, CheckCircle, XCircle, AlertTriangle, HelpCircle } from 'lucide-react-native';
+import { Search, ArrowRight, Zap, Shield, Share2, Link, CheckCircle, XCircle, AlertTriangle, HelpCircle, User } from 'lucide-react-native';
 import { createClaim } from '../lib/api';
 import { API_BASE } from '../lib/constants';
 import { useAuth } from '../lib/auth';
@@ -17,7 +17,7 @@ interface RecentClaim {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { updateUsage } = useAuth();
+  const { user, usage, updateUsage } = useAuth();
   const [query, setQuery] = useState('');
   const [tone, setTone] = useState<Tone>('cordial');
   const [isLoading, setIsLoading] = useState(false);
@@ -353,6 +353,28 @@ export default function HomeScreen() {
                 Get a shareable link
               </Text>
             </View>
+
+            {/* Sign in prompt for guests */}
+            {!user && (
+              <Pressable
+                onPress={() => router.push('/login')}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: spacing.md,
+                  paddingTop: spacing.sm,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.borderLight,
+                }}
+              >
+                <User color={colors.textSecondary} size={14} style={{ marginRight: 6 }} />
+                <Text style={{ fontSize: 13, color: colors.textSecondary }}>
+                  Sign in for {usage.limit === 5 ? '3x more' : 'more'} fact-checks
+                </Text>
+                <ArrowRight color={colors.textSecondary} size={14} style={{ marginLeft: 4 }} />
+              </Pressable>
+            )}
           </View>
 
           {/* Features - horizontal row */}
