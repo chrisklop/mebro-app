@@ -177,7 +177,7 @@ Additional metrics to track in future sessions:
 - [x] Privacy policy page
 - [x] Session startup dashboard (CLAUDE.md)
 - [x] App store submission roadmap (6 phases)
-- [x] `/s` save session command
+- [x] Global session commands (`/init`, `/r`, `/s`)
 
 ---
 
