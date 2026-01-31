@@ -1,7 +1,7 @@
-import { View, Text, Pressable, ScrollView, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, Modal, Linking } from 'react-native';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, User, Mail, Crown, Zap, LogOut, ChevronRight, Shield } from 'lucide-react-native';
+import { ArrowLeft, User, Mail, Crown, Zap, LogOut, ChevronRight, Shield, FileText, MessageCircle } from 'lucide-react-native';
 import { useAuth } from '../lib/auth';
 import { getSubscriptionInfo, SubscriptionInfo, getUsageLimits } from '../lib/purchases';
 import { Paywall } from '../components/Paywall';
@@ -231,7 +231,18 @@ export default function AccountScreen() {
           <MenuItem
             icon={Shield}
             label="Privacy Policy"
-            onPress={() => router.push('/privacy')}
+            onPress={() => Linking.openURL('https://www.mebro.app/privacy')}
+          />
+          <MenuItem
+            icon={FileText}
+            label="Terms of Service"
+            onPress={() => Linking.openURL('https://www.mebro.app/terms')}
+          />
+          <MenuItem
+            icon={MessageCircle}
+            label="Contact Us"
+            onPress={() => Linking.openURL('https://www.mebro.app/contact')}
+            isLast={!user}
           />
 
           {user && (
