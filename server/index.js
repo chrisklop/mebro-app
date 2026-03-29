@@ -65,35 +65,18 @@ async function processClaimAsync(slug, query, tone) {
   }
 }
 
-// POST /api/cog-diss/analyze — returns slug immediately, processes in background
+// POST /api/cog-diss/analyze — accepts slug from client (client creates claim via mebro.app auth)
 app.post('/api/cog-diss/analyze', async (req, res) => {
-  const { query, tone } = req.body;
+  const { query, tone, slug } = req.body;
 
+  if (!slug || typeof slug !== 'string') {
+    return res.status(400).json({ success: false, error: 'slug is required (create claim via mebro.app first)' });
+  }
   if (!query || typeof query !== 'string') {
     return res.status(400).json({ success: false, error: 'query is required' });
   }
-  const validTones = ['cordial', 'academic', 'brutal'];
-  if (tone && !validTones.includes(tone)) {
-    return res.status(400).json({ success: false, error: `tone must be one of: ${validTones.join(', ')}` });
-  }
 
   try {
-    // Submit claim to mebro.app
-    const submitRes = await fetch('https://mebro.app/api/claims', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ query, tone: tone || 'cordial' }),
-    });
-    if (!submitRes.ok) {
-      const err = await submitRes.text();
-      return res.status(502).json({ success: false, error: `mebro.app claim submission failed: ${err}` });
-    }
-    const submitted = await submitRes.json();
-    const slug = submitted.slug || submitted.id;
-    if (!slug) {
-      return res.status(502).json({ success: false, error: 'mebro.app did not return a slug' });
-    }
-
     // Return slug immediately if already done
     if (store.has(slug) && store.get(slug).status === 'done') {
       return res.json({ success: true, slug });

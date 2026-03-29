@@ -1,13 +1,16 @@
-import { View, Text, TextInput, Pressable, Animated } from 'react-native';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { Search, ArrowRight } from 'lucide-react-native';
-import { analyzeClaim } from '../../lib/cogdiss-api';
-import { colors, spacing, borderRadius, shadows, getWaitingMessage, getRandomProgressQuote } from '../../lib/design';
+import { createClaim } from '../../lib/api';
+import { startCogDissAnalysis } from '../../lib/cogdiss-api';
+import { useAuth } from '../../lib/auth';
+import { colors, spacing, shadows, borderRadius, getWaitingMessage, getRandomProgressQuote } from '../../lib/design';
 import type { Tone } from '../../lib/types';
 
 export default function CogEntryScreen() {
   const router = useRouter();
+  const { updateUsage } = useAuth();
   const [query, setQuery] = useState('');
   const [tone, setTone] = useState<Tone>('cordial');
   const [isLoading, setIsLoading] = useState(false);
@@ -46,12 +49,22 @@ export default function CogEntryScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const response = await analyzeClaim(query.trim(), tone);
-      if (response.success && response.slug) {
-        router.push(`/cog/${response.slug}`);
-      } else {
-        setError(response.error || 'Something went wrong');
+      // Step 1: Create claim via mebro.app (authenticated)
+      const claimResponse = await createClaim(query.trim(), tone, updateUsage);
+      if (!claimResponse.success || !claimResponse.claim) {
+        setError(claimResponse.error || 'Failed to create claim');
+        return;
       }
+      const slug = claimResponse.claim.slug;
+
+      // Step 2: Kick off cog-diss analysis with the slug
+      const cogResponse = await startCogDissAnalysis(slug, query.trim(), tone);
+      if (!cogResponse.success) {
+        setError(cogResponse.error || 'Failed to start analysis');
+        return;
+      }
+
+      router.push(`/cog/${slug}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error');
     } finally {
@@ -66,195 +79,217 @@ export default function CogEntryScreen() {
   ];
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surfaceDark, justifyContent: 'center', paddingHorizontal: spacing.lg }}>
-      <View style={{ maxWidth: 560, alignSelf: 'center', width: '100%' }}>
-        {/* Header */}
-        <View style={{ marginBottom: spacing.xl }}>
-          <Text style={{
-            fontSize: 11,
-            fontWeight: '600',
-            color: colors.verdictUnverified,
-            letterSpacing: 2,
-            marginBottom: spacing.xs,
-          }}>
-            EXPERIMENTAL
-          </Text>
-          <Text style={{
-            fontSize: 28,
-            fontWeight: '800',
-            color: colors.textOnDark,
-            marginBottom: spacing.xs,
-          }}>
-            Cognitive Dissonance Lab
-          </Text>
-          <Text style={{ fontSize: 14, color: colors.textOnDarkMuted, lineHeight: 20 }}>
-            Dual-mode analysis: fact check + disinformation source breakdown side by side.
-          </Text>
-        </View>
-
-        {/* Input Card */}
-        <View style={{
-          backgroundColor: 'rgba(255,255,255,0.06)',
-          borderRadius: borderRadius.lg,
-          padding: spacing.md,
-          borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.1)',
-          ...shadows.lg,
-        }}>
-          {/* Tone Selector */}
-          <View style={{
-            flexDirection: 'row',
-            backgroundColor: 'rgba(0,0,0,0.3)',
-            borderRadius: borderRadius.md,
-            padding: 3,
-            marginBottom: spacing.sm,
-          }}>
-            {tones.map((t) => (
-              <Pressable
-                key={t.key}
-                onPress={() => setTone(t.key)}
-                style={{
-                  flex: 1,
-                  paddingVertical: spacing.sm,
-                  borderRadius: borderRadius.sm,
-                  backgroundColor: tone === t.key ? 'rgba(255,255,255,0.12)' : 'transparent',
-                }}
-              >
-                <Text style={{
-                  fontSize: 13,
-                  fontWeight: '600',
-                  color: tone === t.key ? colors.textOnDark : colors.textOnDarkMuted,
-                  textAlign: 'center',
-                }}>
-                  {t.label}
-                </Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Text Input */}
-          <View style={{
-            backgroundColor: 'rgba(0,0,0,0.25)',
-            borderRadius: borderRadius.md,
-            borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.08)',
-            padding: spacing.sm,
-            marginBottom: spacing.sm,
-          }}>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
-              <Search color={colors.textOnDarkMuted} size={18} style={{ marginRight: 10, marginTop: 2 }} />
-              <TextInput
-                multiline
-                placeholder="Paste a claim to analyze..."
-                placeholderTextColor={colors.textOnDarkMuted}
-                value={query}
-                onChangeText={(text) => setQuery(text.slice(0, 2000))}
-                editable={!isLoading}
-                style={{
-                  flex: 1,
-                  color: colors.textOnDark,
-                  fontSize: 15,
-                  minHeight: 60,
-                  maxHeight: 120,
-                  lineHeight: 22,
-                }}
-              />
-            </View>
-            <View style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: spacing.xs,
-              paddingTop: spacing.xs,
-              borderTopWidth: 1,
-              borderTopColor: 'rgba(255,255,255,0.06)',
-            }}>
-              <Text style={{ fontSize: 11, color: colors.textOnDarkMuted }}>
-                {query.length}/2000
-              </Text>
-              {error && (
-                <Text style={{ fontSize: 11, color: colors.verdictFalse }}>{error}</Text>
-              )}
-            </View>
-          </View>
-
-          {/* Loading state */}
-          {isLoading && (
-            <View style={{ marginBottom: spacing.sm }}>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: colors.background }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={{ flex: 1, paddingHorizontal: spacing.md, justifyContent: 'center' }}>
+          <View style={{ maxWidth: 500, alignSelf: 'center', width: '100%' }}>
+            {/* Header */}
+            <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
               <View style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                marginBottom: spacing.xs,
-              }}>
-                {[0, 1, 2].map(i => (
-                  <Animated.View key={i} style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 4,
-                    backgroundColor: colors.verdictUnverified,
-                    marginHorizontal: 3,
-                    opacity: pulseAnim,
-                  }} />
-                ))}
-              </View>
-              <Text style={{
-                fontSize: 12,
-                color: colors.textOnDarkMuted,
-                textAlign: 'center',
-                lineHeight: 18,
+                backgroundColor: colors.verdictUnverified,
+                paddingVertical: 3,
                 paddingHorizontal: spacing.sm,
+                borderRadius: borderRadius.full,
                 marginBottom: spacing.sm,
               }}>
-                {getWaitingMessage(tone, messageIndex)}
+                <Text style={{
+                  fontSize: 10,
+                  fontWeight: '700',
+                  color: colors.textOnDark,
+                  letterSpacing: 1.5,
+                }}>
+                  EXPERIMENTAL
+                </Text>
+              </View>
+              <Text style={{
+                fontSize: 28,
+                fontWeight: '800',
+                color: colors.textPrimary,
+                marginBottom: spacing.xs,
+              }}>
+                Cognitive Dissonance
               </Text>
-              {currentQuote && (
-                <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', paddingTop: spacing.sm }}>
-                  <Text style={{
-                    fontSize: 11,
-                    color: colors.textOnDarkMuted,
-                    textAlign: 'center',
-                    fontStyle: 'italic',
-                    lineHeight: 16,
-                    paddingHorizontal: spacing.md,
-                  }}>
-                    "{currentQuote}"
+              <Text style={{
+                fontSize: 13,
+                color: colors.textSecondary,
+                textAlign: 'center',
+                lineHeight: 18,
+              }}>
+                Dual-mode analysis: fact check + disinformation source breakdown side by side.
+              </Text>
+            </View>
+
+            {/* Input Card */}
+            <View style={{
+              backgroundColor: colors.surface,
+              borderRadius: borderRadius.lg,
+              padding: spacing.md,
+              borderWidth: 1,
+              borderColor: colors.border,
+              ...shadows.md,
+            }}>
+              {/* Tone Selector */}
+              <View style={{
+                flexDirection: 'row',
+                backgroundColor: colors.backgroundAlt,
+                borderRadius: borderRadius.md,
+                padding: 3,
+                marginBottom: spacing.sm,
+              }}>
+                {tones.map((t) => (
+                  <Pressable
+                    key={t.key}
+                    onPress={() => setTone(t.key)}
+                    style={{
+                      flex: 1,
+                      paddingVertical: spacing.sm,
+                      borderRadius: borderRadius.sm,
+                      backgroundColor: tone === t.key ? colors.surface : 'transparent',
+                      ...(tone === t.key ? shadows.sm : {}),
+                    }}
+                  >
+                    <Text style={{
+                      fontSize: 13,
+                      fontWeight: '600',
+                      color: tone === t.key ? colors.textPrimary : colors.textMuted,
+                      textAlign: 'center',
+                    }}>
+                      {t.label}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
+
+              {/* Text Input */}
+              <View style={{
+                backgroundColor: colors.backgroundAlt,
+                borderRadius: borderRadius.md,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: spacing.sm,
+                marginBottom: spacing.sm,
+              }}>
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start' }}>
+                  <Search color={colors.textMuted} size={18} style={{ marginRight: 10, marginTop: 2 }} />
+                  <TextInput
+                    multiline
+                    placeholder="Paste a claim to analyze..."
+                    placeholderTextColor={colors.textMuted}
+                    value={query}
+                    onChangeText={(text) => setQuery(text.slice(0, 2000))}
+                    editable={!isLoading}
+                    style={{
+                      flex: 1,
+                      color: colors.textPrimary,
+                      fontSize: 15,
+                      minHeight: 40,
+                      maxHeight: 100,
+                      lineHeight: 22,
+                    }}
+                  />
+                </View>
+                <View style={{
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginTop: spacing.xs,
+                  paddingTop: spacing.xs,
+                  borderTopWidth: 1,
+                  borderTopColor: colors.borderLight,
+                }}>
+                  <Text style={{ fontSize: 11, color: colors.textMuted }}>
+                    {query.length}/2000
                   </Text>
+                  {error && (
+                    <Text style={{ fontSize: 11, color: colors.verdictFalse }}>
+                      {error}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Loading state */}
+              {isLoading && (
+                <View style={{ marginBottom: spacing.sm }}>
+                  <View style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: spacing.xs,
+                  }}>
+                    <Animated.View style={{
+                      width: 8, height: 8, borderRadius: 4,
+                      backgroundColor: colors.textPrimary, marginRight: spacing.xs, opacity: pulseAnim,
+                    }} />
+                    <Animated.View style={{
+                      width: 8, height: 8, borderRadius: 4,
+                      backgroundColor: colors.textPrimary, marginRight: spacing.xs, opacity: pulseAnim,
+                    }} />
+                    <Animated.View style={{
+                      width: 8, height: 8, borderRadius: 4,
+                      backgroundColor: colors.textPrimary, opacity: pulseAnim,
+                    }} />
+                  </View>
+                  <Text style={{
+                    fontSize: 12,
+                    color: colors.textSecondary,
+                    textAlign: 'center',
+                    lineHeight: 18,
+                    paddingHorizontal: spacing.sm,
+                    marginBottom: spacing.sm,
+                  }}>
+                    {getWaitingMessage(tone, messageIndex)}
+                  </Text>
+                  {currentQuote && (
+                    <View style={{ borderTopWidth: 1, borderTopColor: colors.borderLight, paddingTop: spacing.sm }}>
+                      <Text style={{
+                        fontSize: 11,
+                        color: colors.textMuted,
+                        textAlign: 'center',
+                        fontStyle: 'italic',
+                        lineHeight: 16,
+                        paddingHorizontal: spacing.md,
+                      }}>
+                        "{currentQuote}"
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
-            </View>
-          )}
 
-          {/* Submit */}
-          <Pressable
-            onPress={handleSubmit}
-            disabled={!query.trim() || isLoading}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: !query.trim() || isLoading
-                ? 'rgba(124,58,237,0.3)'
-                : colors.verdictUnverified,
-              paddingVertical: spacing.sm + 2,
-              borderRadius: borderRadius.md,
-              gap: spacing.sm,
-            }}
-          >
-            {isLoading ? (
-              <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textOnDark }}>
-                Analyzing...
-              </Text>
-            ) : (
-              <>
-                <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textOnDark }}>
-                  Run Dual Analysis
-                </Text>
-                <ArrowRight color={colors.textOnDark} size={18} />
-              </>
-            )}
-          </Pressable>
+              {/* Submit */}
+              <Pressable
+                onPress={handleSubmit}
+                disabled={!query.trim() || isLoading}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: !query.trim() || isLoading ? colors.border : colors.primary,
+                  paddingVertical: spacing.sm + 2,
+                  borderRadius: borderRadius.md,
+                }}
+              >
+                {isLoading ? (
+                  <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textOnDark }}>
+                    Analyzing...
+                  </Text>
+                ) : (
+                  <>
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: colors.textOnDark, marginRight: spacing.sm }}>
+                      Run Dual Analysis
+                    </Text>
+                    <ArrowRight color={colors.textOnDark} size={18} />
+                  </>
+                )}
+              </Pressable>
+            </View>
+          </View>
         </View>
-      </View>
-    </View>
+      </KeyboardAvoidingView>
+    </TouchableWithoutFeedback>
   );
 }

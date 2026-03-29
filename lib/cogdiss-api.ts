@@ -2,11 +2,11 @@ import type { CogDissAnalyzeResponse, CogDissResultResponse } from './cogdiss-ty
 
 const COGDISS_API = process.env.EXPO_PUBLIC_COGDISS_API || 'http://localhost:3001';
 
-export async function analyzeClaim(query: string, tone: string): Promise<CogDissAnalyzeResponse> {
+export async function startCogDissAnalysis(slug: string, query: string, tone: string): Promise<CogDissAnalyzeResponse> {
   const response = await fetch(`${COGDISS_API}/api/cog-diss/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ query, tone }),
+    body: JSON.stringify({ slug, query, tone }),
   });
   return response.json();
 }
