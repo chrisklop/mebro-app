@@ -12,7 +12,7 @@ app.use(express.json());
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyB61DuF2JNLlQnQ6gLmyxXAFLsW937hYxg';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
+const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
 // In-memory store: slug -> { status, factCheck?, cogDiss? }
 const store = new Map();
