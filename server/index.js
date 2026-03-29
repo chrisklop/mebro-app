@@ -2,7 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
-const Anthropic = require('@anthropic-ai/sdk');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const app = express();
 const PORT = 3001;
@@ -10,7 +10,8 @@ const PORT = 3001;
 app.use(cors({ origin: 'http://localhost:8081' }));
 app.use(express.json());
 
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
 
 // In-memory store: slug -> { status, factCheck?, cogDiss? }
 const store = new Map();
@@ -29,19 +30,20 @@ async function pollClaim(slug, maxAttempts = 20, delayMs = 1500) {
   throw new Error('Timed out waiting for fact-check verdict');
 }
 
-// Run Claude analysis on the fact-checked claim
+// Run Gemini analysis on the fact-checked claim
 async function analyzeCogDiss(query, factCheck) {
-  const userMessage = `Claim: "${query}"\n\nFact-check verdict: ${factCheck.verdict}\n\nFact-check summary: ${factCheck.summary || factCheck.explanation || '(none provided)'}`;
+  const prompt = `You are a disinformation analyst. Given a claim and its fact-check verdict, analyze: (1) the narrative being pushed, (2) who benefits from this disinfo, (3) what tactics are used (emotional appeal, false authority, etc), (4) provide source links for your analysis.
 
-  const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-6',
-    max_tokens: 1024,
-    system:
-      'You are a disinformation analyst. Given a claim and its fact-check verdict, analyze: (1) the narrative being pushed, (2) who benefits from this disinfo, (3) what tactics are used (emotional appeal, false authority, etc), (4) provide source links for your analysis. Respond with a JSON object only — no markdown, no explanation outside the JSON. The JSON must have these keys: narrative (string), beneficiaries (array of objects with name and explanation), tactics (array of strings), sourceLinks (array of objects with url, title, relevance), confidence (number 0-1), summary (string).',
-    messages: [{ role: 'user', content: userMessage }],
-  });
+Claim: "${query}"
 
-  const text = message.content[0].type === 'text' ? message.content[0].text : '';
+Fact-check verdict: ${factCheck.verdict}
+
+Fact-check summary: ${factCheck.summary || factCheck.explanation || '(none provided)'}
+
+Respond with a JSON object only — no markdown, no explanation outside the JSON. The JSON must have these keys: narrative (string), beneficiaries (array of objects with name and explanation), tactics (array of strings), sourceLinks (array of objects with url, title, relevance), confidence (number 0-1), summary (string).`;
+
+  const result = await model.generateContent(prompt);
+  const text = result.response.text();
   const cleaned = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '').trim();
   return JSON.parse(cleaned);
 }
@@ -52,7 +54,7 @@ async function processClaimAsync(slug, query, tone) {
     // Step 1: Poll until verdict is ready
     const factCheck = await pollClaim(slug);
 
-    // Step 2: Claude disinfo analysis
+    // Step 2: Gemini disinfo analysis
     const cogDiss = await analyzeCogDiss(query, factCheck);
 
     store.set(slug, { status: 'done', factCheck, cogDiss, query });
