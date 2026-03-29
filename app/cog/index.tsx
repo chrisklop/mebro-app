@@ -1,4 +1,4 @@
-import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
+import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { Search, ArrowRight } from 'lucide-react-native';
@@ -12,7 +12,7 @@ export default function CogEntryScreen() {
   const router = useRouter();
   const { updateUsage } = useAuth();
   const [query, setQuery] = useState('');
-  const [tone, setTone] = useState<Tone>('cordial');
+  const tone: Tone = 'academic';
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messageIndex, setMessageIndex] = useState(0);
@@ -72,14 +72,12 @@ export default function CogEntryScreen() {
     }
   };
 
-  const tones: { key: Tone; label: string }[] = [
-    { key: 'cordial', label: 'Cordial' },
-    { key: 'academic', label: 'Academic' },
-    { key: 'brutal', label: 'Brutal' },
-  ];
+  const dismissKeyboard = () => {
+    if (Platform.OS !== 'web') Keyboard.dismiss();
+  };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <Pressable onPress={dismissKeyboard} style={{ flex: 1 }}>
       <KeyboardAvoidingView
         style={{ flex: 1, backgroundColor: colors.background }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -131,38 +129,6 @@ export default function CogEntryScreen() {
               borderColor: colors.border,
               ...shadows.md,
             }}>
-              {/* Tone Selector */}
-              <View style={{
-                flexDirection: 'row',
-                backgroundColor: colors.backgroundAlt,
-                borderRadius: borderRadius.md,
-                padding: 3,
-                marginBottom: spacing.sm,
-              }}>
-                {tones.map((t) => (
-                  <Pressable
-                    key={t.key}
-                    onPress={() => setTone(t.key)}
-                    style={{
-                      flex: 1,
-                      paddingVertical: spacing.sm,
-                      borderRadius: borderRadius.sm,
-                      backgroundColor: tone === t.key ? colors.surface : 'transparent',
-                      ...(tone === t.key ? shadows.sm : {}),
-                    }}
-                  >
-                    <Text style={{
-                      fontSize: 13,
-                      fontWeight: '600',
-                      color: tone === t.key ? colors.textPrimary : colors.textMuted,
-                      textAlign: 'center',
-                    }}>
-                      {t.label}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
-
               {/* Text Input */}
               <View style={{
                 backgroundColor: colors.backgroundAlt,
@@ -290,6 +256,6 @@ export default function CogEntryScreen() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+    </Pressable>
   );
 }
