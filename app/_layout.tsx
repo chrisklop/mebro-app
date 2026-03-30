@@ -19,6 +19,7 @@ export default function RootLayout() {
           >
             <Stack.Screen name="index" />
             <Stack.Screen name="r/[slug]" />
+            <Stack.Screen name="yt" />
             <Stack.Screen name="login" />
             <Stack.Screen name="privacy" />
             <Stack.Screen name="account" />

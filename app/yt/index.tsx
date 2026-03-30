@@ -1,7 +1,7 @@
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import { ArrowRight } from 'lucide-react-native';
+import { ArrowRight, Youtube } from 'lucide-react-native';
 import { startYouTubeAnalysis } from '../../lib/youtube-api';
 import { colors, spacing, shadows, borderRadius } from '../../lib/design';
 
@@ -58,6 +58,45 @@ export default function YouTubeEntryScreen() {
       >
         <View style={{ flex: 1, paddingHorizontal: spacing.md, justifyContent: 'center' }}>
           <View style={{ maxWidth: 500, alignSelf: 'center', width: '100%' }}>
+            {/* Mode Toggle */}
+            <View style={{
+              flexDirection: 'row',
+              backgroundColor: colors.backgroundAlt,
+              borderRadius: borderRadius.md,
+              padding: 3,
+              marginBottom: spacing.sm,
+            }}>
+              <Pressable
+                onPress={() => router.push('/')}
+                style={{
+                  flex: 1,
+                  paddingVertical: spacing.sm,
+                  borderRadius: borderRadius.sm,
+                  alignItems: 'center',
+                }}
+              >
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textMuted }}>
+                  Text Claim
+                </Text>
+              </Pressable>
+              <View style={{
+                flex: 1,
+                flexDirection: 'row',
+                paddingVertical: spacing.sm,
+                borderRadius: borderRadius.sm,
+                backgroundColor: colors.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.xs,
+                ...shadows.sm,
+              }}>
+                <Youtube color={colors.textPrimary} size={14} />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
+                  YouTube
+                </Text>
+              </View>
+            </View>
+
             {/* Header */}
             <View style={{ alignItems: 'center', marginBottom: spacing.lg }}>
               <View style={{

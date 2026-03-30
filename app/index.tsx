@@ -1,7 +1,7 @@
 import { View, Text, TextInput, Pressable, KeyboardAvoidingView, Platform, Keyboard, TouchableWithoutFeedback, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
-import { Search, ArrowRight, Zap, Shield, Share2, Link } from 'lucide-react-native';
+import { Search, ArrowRight, Zap, Shield, Share2, Link, Youtube } from 'lucide-react-native';
 import { createClaim } from '../lib/api';
 import { useAuth } from '../lib/auth';
 import { colors, spacing, shadows, borderRadius, getWaitingMessage, getRandomProgressQuote } from '../lib/design';
@@ -135,6 +135,45 @@ export default function HomeScreen() {
             }}>
               Paste a claim. Get the facts. Share the truth.
             </Text>
+          </View>
+
+          {/* Mode Toggle */}
+          <View style={{
+            flexDirection: 'row',
+            backgroundColor: colors.backgroundAlt,
+            borderRadius: borderRadius.md,
+            padding: 3,
+            marginBottom: spacing.sm,
+          }}>
+            <View style={{
+              flex: 1,
+              paddingVertical: spacing.sm,
+              borderRadius: borderRadius.sm,
+              backgroundColor: colors.surface,
+              alignItems: 'center',
+              ...shadows.sm,
+            }}>
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textPrimary }}>
+                Text Claim
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => router.push('/yt')}
+              style={{
+                flex: 1,
+                flexDirection: 'row',
+                paddingVertical: spacing.sm,
+                borderRadius: borderRadius.sm,
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.xs,
+              }}
+            >
+              <Youtube color={colors.textMuted} size={14} />
+              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.textMuted }}>
+                YouTube
+              </Text>
+            </Pressable>
           </View>
 
           {/* Input Card */}
