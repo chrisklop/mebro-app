@@ -4,6 +4,7 @@ const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { createClient } = require('@supabase/supabase-js');
+const { YoutubeTranscript } = require('youtube-transcript');
 
 const app = express();
 const PORT = 3001;
@@ -205,6 +206,114 @@ app.get('/api/subscription/:userId', async (req, res) => {
     console.error('[/api/subscription]', err.message);
     return res.status(500).json({ error: err.message });
   }
+});
+
+// --- YouTube transcript fact-checker ---
+
+// In-memory store for YouTube analysis: slug -> { status, claims?, error? }
+const ytStore = new Map();
+
+function extractYouTubeVideoId(url) {
+  try {
+    const parsed = new URL(url);
+    // youtube.com/watch?v=ID
+    if (parsed.hostname.includes('youtube.com') && parsed.pathname === '/watch') {
+      return parsed.searchParams.get('v');
+    }
+    // youtube.com/shorts/ID
+    if (parsed.hostname.includes('youtube.com') && parsed.pathname.startsWith('/shorts/')) {
+      return parsed.pathname.split('/shorts/')[1].split('/')[0] || null;
+    }
+    // youtu.be/ID
+    if (parsed.hostname === 'youtu.be') {
+      return parsed.pathname.slice(1).split('/')[0] || null;
+    }
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function ytSlug() {
+  return Math.random().toString(36).slice(2, 10);
+}
+
+async function analyzeYouTubeTranscript(slug, videoId) {
+  try {
+    const segments = await YoutubeTranscript.fetchTranscript(videoId);
+    const transcript = segments.map((s) => s.text).join(' ');
+
+    const prompt = `You are a fact-checking analyst. Carefully read the following video transcript and identify every substantive factual claim made. For each claim, provide:
+- claim: the exact or paraphrased claim
+- verdict: one of TRUE, FALSE, MISLEADING, or UNVERIFIED
+- confidence: integer 0-100
+- explanation: brief explanation of the verdict
+- sources: array of source objects with url and title (use real, credible sources when possible)
+
+Transcript:
+"""
+${transcript.slice(0, 12000)}
+"""
+
+Respond with a JSON object only — no markdown, no text outside the JSON. The JSON must have a single key "claims" which is an array of claim objects.`;
+
+    const result = await model.generateContent(prompt);
+    const text = result.response.text();
+    const cleaned = text.replace(/^```[a-z]*\n?/i, '').replace(/\n?```$/, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    ytStore.set(slug, { status: 'done', claims: parsed.claims, videoId });
+  } catch (err) {
+    console.error(`[analyzeYouTubeTranscript] slug=${slug}`, err);
+    ytStore.set(slug, { status: 'error', error: err.message });
+  }
+}
+
+// POST /api/youtube/analyze — accepts { url, userId? }, returns { slug }
+app.post('/api/youtube/analyze', async (req, res) => {
+  const { url } = req.body;
+
+  if (!url || typeof url !== 'string') {
+    return res.status(400).json({ success: false, error: 'url is required' });
+  }
+
+  const videoId = extractYouTubeVideoId(url);
+  if (!videoId) {
+    return res.status(400).json({ success: false, error: 'Invalid YouTube URL' });
+  }
+
+  const slug = ytSlug();
+  ytStore.set(slug, { status: 'processing' });
+  analyzeYouTubeTranscript(slug, videoId).catch(() => {});
+
+  return res.json({ success: true, slug });
+});
+
+// GET /api/youtube/result/:slug — poll for analysis results
+app.get('/api/youtube/result/:slug', (req, res) => {
+  const { slug } = req.params;
+  const entry = ytStore.get(slug);
+
+  if (!entry) {
+    return res.status(404).json({ success: false, error: 'No result for this slug' });
+  }
+
+  if (entry.status === 'processing') {
+    return res.json({ success: true, result: null });
+  }
+
+  if (entry.status === 'error') {
+    return res.json({ success: false, error: entry.error });
+  }
+
+  return res.json({
+    success: true,
+    result: {
+      claims: entry.claims,
+      videoId: entry.videoId,
+      slug,
+    },
+  });
 });
 
 // GET /api/health
