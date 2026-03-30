@@ -3,12 +3,52 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 const PORT = 3001;
 
 app.use(cors({ origin: 'http://localhost:8081' }));
 app.use(express.json());
+
+// Supabase admin client (service role — only set in production)
+const supabase =
+  process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+    ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY)
+    : null;
+
+// Map RevenueCat event types to subscription tiers
+const TIER_BY_EVENT = {
+  INITIAL_PURCHASE: 'premium',
+  RENEWAL: 'premium',
+  PRODUCT_CHANGE: 'premium',
+  CANCELLATION: 'free',
+  EXPIRATION: 'free',
+  BILLING_ISSUE: 'free',
+  SUBSCRIBER_ALIAS: null, // no tier change
+};
+
+async function updateSubscriptionTier(appUserId, tier) {
+  if (!supabase) {
+    console.warn('[webhook] Supabase not configured — skipping tier update');
+    return;
+  }
+  const { error } = await supabase
+    .from('user_subscriptions')
+    .upsert({ user_id: appUserId, tier, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+  if (error) throw new Error(`Supabase upsert failed: ${error.message}`);
+}
+
+async function getSubscriptionTier(userId) {
+  if (!supabase) return 'free';
+  const { data, error } = await supabase
+    .from('user_subscriptions')
+    .select('tier')
+    .eq('user_id', userId)
+    .single();
+  if (error || !data) return 'free';
+  return data.tier;
+}
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyB61DuF2JNLlQnQ6gLmyxXAFLsW937hYxg';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -120,9 +160,56 @@ app.get('/api/cog-diss/result/:slug', (req, res) => {
   });
 });
 
+// POST /api/webhooks/revenuecat — receives subscription lifecycle events
+app.post('/api/webhooks/revenuecat', async (req, res) => {
+  const authHeader = req.headers['authorization'];
+  const expectedKey = process.env.REVENUECAT_WEBHOOK_AUTH_KEY;
+
+  if (!expectedKey) {
+    console.error('[webhook] REVENUECAT_WEBHOOK_AUTH_KEY not set — rejecting all requests');
+    return res.status(500).json({ error: 'Webhook auth not configured' });
+  }
+  if (authHeader !== expectedKey) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  const event = req.body?.event;
+  if (!event || !event.type) {
+    return res.status(400).json({ error: 'Missing event.type' });
+  }
+
+  const { type, app_user_id: appUserId } = event;
+  console.log(`[webhook] Received event type=${type} user=${appUserId}`);
+
+  const tier = TIER_BY_EVENT[type];
+  if (tier !== null && tier !== undefined && appUserId) {
+    try {
+      await updateSubscriptionTier(appUserId, tier);
+      console.log(`[webhook] Updated user=${appUserId} tier=${tier}`);
+    } catch (err) {
+      console.error('[webhook] Failed to update tier:', err.message);
+      return res.status(500).json({ error: 'Failed to update subscription tier' });
+    }
+  }
+
+  return res.json({ received: true });
+});
+
+// GET /api/subscription/:userId — check subscription tier server-side
+app.get('/api/subscription/:userId', async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const tier = await getSubscriptionTier(userId);
+    return res.json({ userId, tier });
+  } catch (err) {
+    console.error('[/api/subscription]', err.message);
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // GET /api/health
 app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', supabase: !!supabase });
 });
 
 app.listen(PORT, () => {
