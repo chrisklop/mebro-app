@@ -14,11 +14,17 @@ export interface YouTubeAnalysisResult {
   claims: YouTubeClaim[];
 }
 
-export async function startYouTubeAnalysis(url: string): Promise<{ success: boolean; slug?: string; error?: string }> {
+export interface YouTubeQuota {
+  remaining: number;
+  limit: number;
+  tier: string;
+}
+
+export async function startYouTubeAnalysis(url: string, userId?: string): Promise<{ success: boolean; slug?: string; error?: string; quota?: YouTubeQuota }> {
   const response = await fetch(`${COGDISS_API}/api/youtube/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ url }),
+    body: JSON.stringify({ url, userId }),
   });
   return response.json();
 }

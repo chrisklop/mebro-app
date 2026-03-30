@@ -213,6 +213,44 @@ app.get('/api/subscription/:userId', async (req, res) => {
 // In-memory store for YouTube analysis: slug -> { status, claims?, error? }
 const ytStore = new Map();
 
+// YouTube quota limits by subscription tier
+const YT_QUOTAS = {
+  guest: { limit: 5, window: null },      // 5 total (not per-day)
+  free: { limit: 15, window: 'day' },
+  premium: { limit: 150, window: 'day' },
+};
+
+// Quota tracking: key -> { count, windowStart }
+// key = "guest:<ip>" or "user:<userId>"
+const ytQuota = new Map();
+
+function getTodayKey() {
+  return new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+}
+
+function checkAndIncrementQuota(key, tier) {
+  const { limit, window } = YT_QUOTAS[tier] || YT_QUOTAS.guest;
+  const now = Date.now();
+  const entry = ytQuota.get(key) || { count: 0, windowStart: now, day: getTodayKey() };
+
+  if (window === 'day') {
+    const today = getTodayKey();
+    if (entry.day !== today) {
+      // New day — reset counter
+      entry.count = 0;
+      entry.day = today;
+    }
+  }
+
+  if (entry.count >= limit) {
+    return { allowed: false, remaining: 0, limit };
+  }
+
+  entry.count += 1;
+  ytQuota.set(key, entry);
+  return { allowed: true, remaining: limit - entry.count, limit };
+}
+
 function extractYouTubeVideoId(url) {
   try {
     const parsed = new URL(url);
@@ -271,7 +309,7 @@ Respond with a JSON object only — no markdown, no text outside the JSON. The J
 
 // POST /api/youtube/analyze — accepts { url, userId? }, returns { slug }
 app.post('/api/youtube/analyze', async (req, res) => {
-  const { url } = req.body;
+  const { url, userId } = req.body;
 
   if (!url || typeof url !== 'string') {
     return res.status(400).json({ success: false, error: 'url is required' });
@@ -282,11 +320,35 @@ app.post('/api/youtube/analyze', async (req, res) => {
     return res.status(400).json({ success: false, error: 'Invalid YouTube URL' });
   }
 
+  // Quota enforcement
+  let quotaKey;
+  let tier;
+  if (userId) {
+    tier = await getSubscriptionTier(userId);
+    quotaKey = `user:${userId}`;
+  } else {
+    tier = 'guest';
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.socket.remoteAddress || 'unknown';
+    quotaKey = `guest:${ip}`;
+  }
+
+  const quota = checkAndIncrementQuota(quotaKey, tier);
+  if (!quota.allowed) {
+    const isGuest = tier === 'guest';
+    return res.status(429).json({
+      success: false,
+      error: isGuest
+        ? 'Guest limit reached (5 analyses). Sign in for more.'
+        : `Daily limit reached (${quota.limit}/day). Upgrade for a higher quota.`,
+      quota: { remaining: 0, limit: quota.limit, tier },
+    });
+  }
+
   const slug = ytSlug();
   ytStore.set(slug, { status: 'processing' });
   analyzeYouTubeTranscript(slug, videoId).catch(() => {});
 
-  return res.json({ success: true, slug });
+  return res.json({ success: true, slug, quota: { remaining: quota.remaining, limit: quota.limit, tier } });
 });
 
 // GET /api/youtube/result/:slug — poll for analysis results

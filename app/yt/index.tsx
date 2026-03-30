@@ -3,15 +3,19 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { ArrowRight, Youtube } from 'lucide-react-native';
 import { startYouTubeAnalysis } from '../../lib/youtube-api';
+import type { YouTubeQuota } from '../../lib/youtube-api';
+import { useAuth } from '../../lib/auth';
 import { colors, spacing, shadows, borderRadius } from '../../lib/design';
 
 const YT_URL_RE = /^https?:\/\/(www\.)?(youtube\.com\/(watch\?v=|shorts\/)|youtu\.be\/)\S+/i;
 
 export default function YouTubeEntryScreen() {
   const router = useRouter();
+  const { user } = useAuth();
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quota, setQuota] = useState<YouTubeQuota | null>(null);
   const pulseAnim = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -33,7 +37,8 @@ export default function YouTubeEntryScreen() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await startYouTubeAnalysis(url.trim());
+      const res = await startYouTubeAnalysis(url.trim(), user?.id);
+      if (res.quota) setQuota(res.quota);
       if (!res.success || !res.slug) {
         setError(res.error || 'Failed to start analysis');
         return;
@@ -198,15 +203,35 @@ export default function YouTubeEntryScreen() {
                 </View>
               )}
 
+              {/* Quota status */}
+              {quota && quota.remaining <= 3 && (
+                <View style={{
+                  backgroundColor: quota.remaining === 0 ? '#fee2e2' : '#fef3c7',
+                  borderRadius: borderRadius.sm,
+                  padding: spacing.sm,
+                  marginBottom: spacing.sm,
+                }}>
+                  <Text style={{
+                    fontSize: 12,
+                    color: quota.remaining === 0 ? colors.verdictFalse : colors.verdictNuanced,
+                    textAlign: 'center',
+                  }}>
+                    {quota.remaining === 0
+                      ? 'Quota reached — upgrade for more analyses'
+                      : `${quota.remaining} analysis${quota.remaining !== 1 ? 'es' : ''} remaining today`}
+                  </Text>
+                </View>
+              )}
+
               {/* Submit */}
               <Pressable
                 onPress={handleSubmit}
-                disabled={!isValidUrl || isLoading}
+                disabled={!isValidUrl || isLoading || (quota?.remaining === 0)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: !isValidUrl || isLoading ? colors.border : colors.primary,
+                  backgroundColor: !isValidUrl || isLoading || quota?.remaining === 0 ? colors.border : colors.primary,
                   paddingVertical: spacing.sm + 2,
                   borderRadius: borderRadius.md,
                 }}
