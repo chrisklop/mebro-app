@@ -1,4 +1,4 @@
-const COGDISS_API = process.env.EXPO_PUBLIC_COGDISS_API || 'http://localhost:3001';
+const COGDISS_API = process.env.EXPO_PUBLIC_COGDISS_API || 'https://mebro.app';
 
 export interface YouTubeClaim {
   claim: string;
@@ -21,7 +21,7 @@ export interface YouTubeQuota {
 }
 
 export async function startYouTubeAnalysis(url: string, userId?: string): Promise<{ success: boolean; slug?: string; error?: string; quota?: YouTubeQuota }> {
-  const response = await fetch(`${COGDISS_API}/api/youtube/analyze`, {
+  const response = await fetch(`${COGDISS_API}/api/youtube`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ url, userId }),

@@ -6,3 +6,5 @@ CLAUDE.md
 GEMINI.md
 .agent/
 .mcp.json
+.vercel
+.env*.local
